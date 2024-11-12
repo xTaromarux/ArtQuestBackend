@@ -1,0 +1,13 @@
+FROM postgres:16.2-alpine
+
+ENV CONFIG_DIR /usr/src/config
+
+RUN mkdir -p ${CONFIG_DIR}
+
+RUN mkdir -p ${CONFIG_DIR}/images/binary_example_excercise_pictures
+
+COPY ./db_scripts/images/binary_example_excercise_pictures ${CONFIG_DIR}/images/binary_example_excercise_pictures
+
+WORKDIR ${CONFIG_DIR}
+
+CMD ["postgres"]
