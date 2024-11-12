@@ -8,9 +8,6 @@ import openai
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
 
-
-
-
 torch.set_grad_enabled(False)
 
 def load_api_key():
@@ -146,10 +143,10 @@ def main():
     print(message)
     
     # Wizualizacja dopasowań
-    visualize_matches(image0, image1, m_kpts0, m_kpts1, matches01["stop"])
+    #visualize_matches(image0, image1, m_kpts0, m_kpts1, matches01["stop"])
     
     # Wizualizacja kluczowych punktów po odcięciu
-    visualize_keypoints(image0, image1, kpts0, kpts1, matches01['prune0'], matches01['prune1'])
+    #visualize_keypoints(image0, image1, kpts0, kpts1, matches01['prune0'], matches01['prune1'])
 
 # Uruchomienie głównej funkcji
 if __name__ == "__main__":

@@ -28,7 +28,6 @@ app = FastAPI()
 from app.services import (
     users as user_service,
     posts as post_service,
-    # progresses as progresses_service,
     courses as course_service,
     views as views_service,
     # pictures as picture_service,
@@ -39,7 +38,6 @@ from app.services import (
 # Dodawanie tras do aplikacji FastAPI
 app.include_router(user_service.router, prefix="/api")
 app.include_router(post_service.router, prefix="/api")
-# app.include_router(progresses_service.router, prefix="/api")
 app.include_router(course_service.router, prefix="/api")
 app.include_router(exercises_service.router, prefix="/api")
 app.include_router(views_service.router, prefix="/api")
