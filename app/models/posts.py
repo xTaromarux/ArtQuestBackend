@@ -1,16 +1,16 @@
-from sqlalchemy import Column, UUID, String
+import sqlalchemy as _sql
+import database as _database
 
-
-class Posts:
+class Posts(_database.Base):
     __tablename__ = 'posts'
-    id = Column(UUID, primary_key=True)
-    title = Column(String)
-    description = Column(String)
-    state = Column(String)
-    date_added = Column(String)
-    date_updated = Column(String)
-    picture_id = Column(UUID)
-    user_id = Column(UUID)
+    id = _sql.Column(_sql.UUID, primary_key=True)
+    title = _sql.Column(_sql.String, index=True)
+    description = _sql.Column(_sql.String, index=True)
+    state = _sql.Column(_sql.String, index=True)
+    date_added = _sql.Column(_sql.String, index=True)
+    date_updated = _sql.Column(_sql.String, index=True)
+    picture_id = _sql.Column(_sql.UUID, index=True)
+    user_id = _sql.Column(_sql.UUID, index=True)
 
     def __repr__(self):
         return (f"<Posts(id={self.id}, title='{self.title}', "

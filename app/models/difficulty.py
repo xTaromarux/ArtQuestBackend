@@ -1,14 +1,14 @@
-from sqlalchemy import Column, Integer, UUID, String
+import sqlalchemy as _sql
+import database as _database
 
-
-class Difficulty:
+class Difficulty(_database.Base):
     __tablename__ = 'difficulty'
-    id = Column(UUID, primary_key=True)
-    name = Column(String)
-    color = Column(String)
-    score = Column(Integer)
-    exercises_id = Column(UUID)
+    id = _sql.Column(_sql.UUID, primary_key=True)
+    name = _sql.Column(_sql.String, index=True)
+    color = _sql.Column(_sql.String, index=True)
+    score = _sql.Column(_sql.Integer, index=True)
+    
 
     def __repr__(self):
         return (f"<Difficulty(id={self.id}, name='{self.name}', "
-                f"color='{self. color}', score='{self.score}', exercises_id='{self.exercises_id})>")
+                f"color='{self. color}', score='{self.score}')>")

@@ -1,15 +1,16 @@
-from sqlalchemy import Column, UUID, String, Date
+import sqlalchemy as _sql
+import database as _database
 
-
-class Users:
+class Users(_database.Base):
     __tablename__ = 'users'
-    id = Column(UUID, primary_key=True)
-    group = Column(String)
-    mail = Column(String)
-    login = Column(String)
-    password = Column(String)
-    date_added = Column(Date)
-    date_updated = Column(Date)
+    id = _sql.Column(_sql.UUID, primary_key=True)
+    group = _sql.Column(_sql.String, index=True)
+    mail = _sql.Column(_sql.String, index=True)
+    login = _sql.Column(_sql.String, index=True)
+    password = _sql.Column(_sql.String, index=True)
+    date_added = _sql.Column(_sql.Date, index=True)
+    date_updated = _sql.Column(_sql.Date, index=True)
+    
 
     def __repr__(self):
         return (f"<Users(id={self.id}, group='{self.group}', mail='{self.mail}',"

@@ -1,12 +1,13 @@
-from sqlalchemy import Column, UUID, String, BLOB
+import sqlalchemy as _sql
+import database as _database
 
-
-class Pictures:
+class Pictures(_database.Base):
     __tablename__ = 'pictures'
-    id = Column(UUID, primary_key=True)
-    blob = Column(BLOB)
-    description = Column(String)
-    date_added = Column(String)
+    id = _sql.Column(_sql.UUID, primary_key=True)
+    blob = _sql.Column(_sql.BLOB, index=True)
+    description = _sql.Column(_sql.String, index=True)
+    date_added = _sql.Column(_sql.String, index=True)
+    
 
     def __repr__(self):
         return (f"<Pictures(id={self.id}, blob='{self.blob}', "

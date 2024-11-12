@@ -1,6 +1,12 @@
+import logging
+import time
+
+logger = logging.getLogger(__name__)
 
 def main():
-    x = 1
+    while True:
+        logger.info("It works!")
+        time.sleep(2)
 
 if __name__ == "__main__":
     main()

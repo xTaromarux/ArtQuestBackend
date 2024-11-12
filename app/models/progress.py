@@ -1,14 +1,14 @@
-from sqlalchemy import Column, Integer, UUID
+import sqlalchemy as _sql
+import database as _database
 
-
-class Progress:
+class Progress(_database.Base):
     __tablename__ = 'progress'
-    id = Column(UUID, primary_key=True)
-    implementation_stage = Column(Integer)
-    picture_id = Column(UUID)
-    exercises_id = Column(UUID)
-    user_id = Column(UUID)
-
+    id = _sql.Column(_sql.UUID, primary_key=True)
+    implementation_stage = _sql.Column(_sql.Integer, index=True)
+    picture_id = _sql.Column(_sql.UUID, index=True)
+    exercises_id = _sql.Column(_sql.UUID, index=True)
+    user_id = _sql.Column(_sql.UUID, index=True)
+    
 
     def __repr__(self):
         return (f"<Progress(id={self.id}, implementation_stage='{self.implementation_stage}', "
