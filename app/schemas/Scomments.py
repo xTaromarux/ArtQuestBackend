@@ -3,25 +3,22 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional
 
-class PostsBase(BaseModel):
-    description: Optional[str] = None  
-    reactions: Optional[int] = None
+class CommentsBase(BaseModel):
+    description: str
+    reactions: int
+    user_id: UUID
+    post_id: UUID
 
     class Config:
         from_attributes = True
 
-class PostsCreate(PostsBase):
+class CommentsCreate(CommentsBase):
     pass
 
-class PostsUpdate(PostsBase):
-    pass
-
-class Posts(PostsBase):
+class Comments(CommentsBase):
     id: UUID
     date_added: datetime
     date_updated: datetime
-    user_id: Optional[UUID] = None
-    picture_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True

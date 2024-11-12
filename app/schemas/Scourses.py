@@ -2,19 +2,19 @@ from pydantic import BaseModel
 from uuid import UUID
 from typing import Optional
 
-class UsersBase(BaseModel):
-    login: str
-    mail: str
-    user_name: str
-    group: Optional[str] = None
+class CoursesBase(BaseModel):
+    title: str
+    description: str
+    difficulty_id: UUID
+    picture_id: UUID
 
     class Config:
         from_attributes = True
 
-class UsersCreate(UsersBase):
+class CoursesCreate(CoursesBase):
     pass
 
-class Users(UsersBase):
+class Courses(CoursesBase):
     id: UUID
 
     class Config:

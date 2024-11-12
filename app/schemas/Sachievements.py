@@ -2,19 +2,20 @@ from pydantic import BaseModel
 from uuid import UUID
 from typing import Optional
 
-class ExercisesBase(BaseModel):
-    title: Optional[str] = None
-    done: bool
-    course_id: UUID
+class AchievementsBase(BaseModel):
+    experience: int
     picture_id: UUID
 
     class Config:
         from_attributes = True
 
-class ExercisesCreate(ExercisesBase):
+class AchievementsCreate(AchievementsBase):
     pass
 
-class Exercises(ExercisesBase):
+class AchievementsUpdate(AchievementsBase):
+    pass
+
+class Achievements(AchievementsBase):
     id: UUID
 
     class Config:
