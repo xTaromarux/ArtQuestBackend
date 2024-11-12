@@ -17,26 +17,32 @@ router = APIRouter()
 def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
     Pobiera szczegóły widoku na podstawie exercise_id, w tym template, ai_part, next_view_id, previous_view_id,
-    opisy oraz linki do obrazów.
+    opisy, krótkie opisy oraz linki do obrazów.
     """
+    # Pobranie widoku związanego z exercise_id
     view = db.query(Views).filter(Views.exercise_id == exercise_id).first()
     if not view:
         raise HTTPException(status_code=404, detail="View not found")
 
-    descriptions = db.query(Views_data.description).filter(Views_data.view_id == view.id).all()
-    descriptions = [desc[0] for desc in descriptions]
+    # Pobranie opisów i krótkich opisów z views_data
+    descriptions_data = db.query(Views_data.description, Views_data.short_description).filter(Views_data.view_id == view.id).all()
+    descriptions = [desc[0] for desc in descriptions_data]
+    short_descriptions = [desc[1] for desc in descriptions_data if desc[1] is not None]
 
+    # Pobranie linków do obrazów z views_pictures i pictures
     picture_ids = db.query(Views_pictures.picture_id).filter(Views_pictures.view_id == view.id).all()
     picture_urls = [
         str(request.url_for("get_view_picture", picture_id=pic_id[0])) for pic_id in picture_ids
     ]
 
+    # Przygotowanie odpowiedzi
     response = {
         "template": view.template,
         "ai_part": view.ai_part,
         "next_view_id": view.next_view_id,
         "previous_view_id": view.previous_view_id,
         "descriptions": descriptions,
+        "short_descriptions": short_descriptions,
         "picture_urls": picture_urls
     }
     

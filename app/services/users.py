@@ -1,22 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
-from uuid import UUID
+from uuid import UUID, uuid4
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+import pytz
+
 from database import get_db
 from models.users import Users
 from models.pictures import Pictures
-from schemas.Susers import Users as UsersSchema, UsersMinimalResponse  # Użyj schematu Pydantic dla serializacji danych
+from models.posts import Posts
+from models.user_achievements import User_achievements
+from models.user_course import User_course
+from schemas.Susers import Users as UsersSchema, UsersMinimalResponse
 
 router = APIRouter()
-
-@router.get("/user/{user_id}/minimal", response_model=UsersMinimalResponse)
-def get_user_minimal_details(user_id: UUID, db: Session = Depends(get_db)):
-    """
-    Pobiera minimalne szczegóły użytkownika (login, mail, user_name) na podstawie user_id.
-    """
-    user = db.query(Users).filter(Users.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
 
 def convert_image_to_binary(image_file: UploadFile) -> bytes:
     """
@@ -24,54 +21,95 @@ def convert_image_to_binary(image_file: UploadFile) -> bytes:
     """
     return image_file.file.read()
 
-@router.put("/user/{user_id}/edit", response_model=UsersMinimalResponse)
-async def update_user(
-    user_id: UUID,
+@router.post("/user/create", response_model=UsersMinimalResponse)
+async def create_user(
     login: str,
     mail: str,
     user_name: str,
+    group: Optional[str] = None,
     picture: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
     """
-    Edytuje login, mail, user_name użytkownika oraz zapisuje nowy obraz w formacie blob w tabeli pictures.
+    Tworzy nowego użytkownika, ustawiając `created_date` w stałej strefie czasowej UTC+1.
+    """
+    # Ustawienie czasu na UTC+1 bez zmiany na czas letni
+    utc_plus_one = timezone(timedelta(hours=1))
+    current_time = datetime.now(utc_plus_one)
+
+    # Utworzenie nowego użytkownika
+    user = Users(
+        id=uuid4(),
+        login=login,
+        mail=mail,
+        user_name=user_name,
+        group=group,
+        created_date=current_time  # Ustawienie daty utworzenia w UTC+1
+    )
+
+    # Jeśli przekazano obraz, zapisz go w tabeli pictures
+    if picture:
+        user_picture = Pictures(id=uuid4(), picture=convert_image_to_binary(picture))
+        db.add(user_picture)
+        db.flush()  # Zapisuje obraz i generuje jego ID
+        user.picture_id = user_picture.id  # Przypisanie ID obrazu do użytkownika
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return UsersMinimalResponse(login=user.login, mail=user.mail, user_name=user.user_name)
+
+@router.put("/user/{user_id}/edit", response_model=UsersMinimalResponse)
+async def update_user(
+    user_id: UUID,
+    login: Optional[str] = None,
+    mail: Optional[str] = None,
+    user_name: Optional[str] = None,
+    group: Optional[str] = None,
+    picture: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Edytuje login, mail, user_name oraz grupę użytkownika, a także zapisuje nowy obraz w formacie blob w tabeli pictures.
     """
     # Pobranie użytkownika z bazy danych
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Aktualizacja danych użytkownika
-    user.login = login
-    user.mail = mail
-    user.user_name = user_name
+    # Aktualizacja danych użytkownika tylko dla pól, które zostały przekazane
+    if login is not None:
+        user.login = login
+    if mail is not None:
+        user.mail = mail
+    if user_name is not None:
+        user.user_name = user_name
+    if group is not None:
+        user.group = group
 
     # Jeśli przekazano obraz, zaktualizuj zdjęcie profilowe
     if picture:
-        # Pobierz istniejące zdjęcie lub utwórz nowe
         if user.picture_id:
             user_picture = db.query(Pictures).filter(Pictures.id == user.picture_id).first()
         else:
-            user_picture = Pictures(id=UUID(uuid4().hex))  # Tworzenie nowego wpisu w tabeli Pictures
+            user_picture = Pictures(id=uuid4())
             db.add(user_picture)
             db.flush()  # Upewnij się, że nowy obraz ma ID
-
-            # Przypisz ID nowego zdjęcia do użytkownika
             user.picture_id = user_picture.id
 
-        # Konwertuj obraz do danych binarnych i zapisz
         user_picture.picture = convert_image_to_binary(picture)
 
-    # Zapisz zmiany
     db.commit()
+    db.refresh(user)
 
-    # Przygotowanie odpowiedzi
     return UsersMinimalResponse(login=user.login, mail=user.mail, user_name=user.user_name)
 
 @router.delete("/user/{user_id}", response_model=dict)
 def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     """
-    Usuwa wszystkie informacje dotyczące użytkownika na podstawie user_id, w tym powiązane zdjęcie.
+    Usuwa wszystkie informacje dotyczące użytkownika na podstawie user_id, w tym powiązane zdjęcie,
+    posty, kursy i osiągnięcia.
     """
     # Pobranie użytkownika z bazy danych
     user = db.query(Users).filter(Users.id == user_id).first()
@@ -84,13 +122,23 @@ def delete_user(user_id: UUID, db: Session = Depends(get_db)):
         if picture:
             db.delete(picture)
     
-    # Usunięcie wszystkich powiązanych danych użytkownika (posty, komentarze, itp.)
-    # Jeśli masz powiązania kaskadowe, te kroki mogą nie być konieczne
-    # W przeciwnym razie dodaj usuwanie postów, komentarzy, osiągnięć itp.
-    # db.query(...).filter(...).delete() dla każdej powiązanej tabeli
+    # Usunięcie wszystkich postów użytkownika
+    user_posts = db.query(Posts).filter(Posts.user_id == user_id).all()
+    for post in user_posts:
+        db.delete(post)
+    
+    # Usunięcie wszystkich powiązanych wierszy w tabeli user_course
+    user_courses = db.query(User_course).filter(User_course.user_id == user_id).all()
+    for user_course in user_courses:
+        db.delete(user_course)
 
+    # Usunięcie wszystkich powiązanych wierszy w tabeli user_achievements
+    user_achievements = db.query(User_achievements).filter(User_achievements.user_id == user_id).all()
+    for achievement in user_achievements:
+        db.delete(achievement)
+    
     # Usunięcie użytkownika
     db.delete(user)
     db.commit()
     
-    return {"message": "User and associated data deleted successfully"}
+    return {"message": "User, associated picture, posts, user_course entries, and user_achievements entries deleted successfully"}

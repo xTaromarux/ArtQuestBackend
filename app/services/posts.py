@@ -135,15 +135,17 @@ def update_post_description(
     db: Session = Depends(get_db)
 ):
     """
-    Edytuje opis postu (description) na podstawie post_id.
+    Edytuje opis postu (description) na podstawie post_id i aktualizuje pole `date_updated`.
     """
     # Pobranie postu z bazy danych
     post = db.query(Posts).filter(Posts.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    # Aktualizacja pola description
+    # Aktualizacja pola description i date_updated
     post.description = description
+    post.date_updated = datetime.utcnow()  # Aktualizacja daty na bieżącą datę i czas
+
     db.commit()
     db.refresh(post)
 
