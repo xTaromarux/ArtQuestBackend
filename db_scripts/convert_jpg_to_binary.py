@@ -19,20 +19,20 @@ def main():
 
     dict_name: str = args.dict_name
     passed_safe_mode = args.safe_mode
-    is_safe_mode: str
+    is_safe_mode: bool
     if passed_safe_mode.lower() == "yes":
         is_safe_mode = True
-    elif passed_safe_mode == "no":
+    elif passed_safe_mode.lower() == "no":
         is_safe_mode = False
     else:
         print(f"Invalid argument --safe_mode={passed_safe_mode}.")
         return
-        
-    input_dicitonary_path: Path = Path(os.path.join(Path(__file__).parent.resolve(), "images", dict_name))
-    if not input_dicitonary_path.exists() and not output_dicitonary_path.is_dir():
+
+    input_dicitonary_path: Path = Path(os.path.join(os.getcwd(), "images", dict_name))
+    if not input_dicitonary_path.exists() or not input_dicitonary_path.is_dir():
         print(f"Dictionary does NOT exist. File path={input_dicitonary_path}")
         return
-    output_dicitonary_path: Path = Path(os.path.join(Path(__file__).parent.resolve(), "images", f"binary_{dict_name}"))
+    output_dicitonary_path: Path = Path(os.path.join(os.getcwd(), "images", f"binary_{dict_name}"))
 
     if output_dicitonary_path.exists() and output_dicitonary_path.is_dir() and not is_safe_mode:
         print("Dictionary already exists.")
@@ -43,14 +43,12 @@ def main():
         except OSError as e:
             print(e)
             return
-    else:
-        os.mkdir(output_dicitonary_path)
-        for filename in os.listdir(input_dicitonary_path):
-            if filename.lower().endswith('.jpg'):
-                jpg_path = os.path.join(input_dicitonary_path, filename)
-                bin_path = os.path.join(output_dicitonary_path, f"{os.path.splitext(filename)[0]}.bin")
-                convert_jpg_to_bin(jpg_path, bin_path)
-
+    os.mkdir(output_dicitonary_path)
+    for filename in os.listdir(input_dicitonary_path):
+        if filename.lower().endswith('.jpg'):
+            jpg_path = os.path.join(input_dicitonary_path, filename)
+            bin_path = os.path.join(output_dicitonary_path, f"{os.path.splitext(filename)[0]}.bin")
+            convert_jpg_to_bin(jpg_path, bin_path)
 
 if __name__ == "__main__":
     main()
