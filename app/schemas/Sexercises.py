@@ -3,10 +3,14 @@ from uuid import UUID
 from typing import Optional
 
 class ExercisesBase(BaseModel):
-    title: Optional[str] = None
-    done: bool
-    course_id: UUID
-    picture_id: UUID
+    title: str
+    description: str
+    aipart: Optional[str] = None
+    colSpan: Optional[int] = None
+    rowSpan: Optional[int] = None
+    cols: Optional[int] = None
+    rows: Optional[int] = None
+    difficulty_id: UUID
 
     class Config:
         from_attributes = True

@@ -2,18 +2,19 @@ from pydantic import BaseModel
 from uuid import UUID
 from typing import Optional
 
-class ProgressesBase(BaseModel):
-    stage: int
+class ProgressBase(BaseModel):
+    score: int
+    description: Optional[str] = None
     user_id: UUID
-    user_course_id: UUID
+    exercise_id: UUID
 
     class Config:
         from_attributes = True
 
-class ProgressesCreate(ProgressesBase):
+class ProgressCreate(ProgressBase):
     pass
 
-class Progresses(ProgressesBase):
+class Progress(ProgressBase):
     id: UUID
 
     class Config:

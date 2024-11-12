@@ -1,29 +1,32 @@
 from database import engine, Base
-from models.difficulties import Difficulties
+from models.difficulty import Difficulty
 from models.users import Users
 from models.posts import Posts
-from models.progresses import Progresses
-from models.courses import Courses
+from models.progress import Progress
+from models.exercises import Exercises
 from models.pictures import Pictures
-from sqlalchemy import inspect, text
-from sqlalchemy.orm import configure_mappers
+import os
+from sqlalchemy.orm import sessionmaker
 
-# Bezpośrednie usunięcie zależnych tabel `pictures` i `courses` przy użyciu CASCADE
-with engine.connect() as conn:
-    conn.execute(text("DROP TABLE IF EXISTS pictures CASCADE"))
-    conn.execute(text("DROP TABLE IF EXISTS courses CASCADE"))
+# Dropping tables in the database
+Base.metadata.drop_all(bind=engine)
+print("Tables have been dropped.")
 
-# Odświeżenie metadanych bazy po usunięciu tabel
-Base.metadata.reflect(bind=engine)
-
-# Próba ponownego usunięcia pozostałych tabel, aby upewnić się, że baza jest wyczyszczona
-Base.metadata.drop_all(bind=engine, checkfirst=True)
-print("Tabele zostały usunięte.")
-
-# Debugowanie relacji w modelach, aby potwierdzić ich prawidłowość
-for cls in [Courses, Progresses, Users, Difficulties]:
-    print(f"{cls.__name__} relationships: {inspect(cls).relationships.keys()}")
-
-# Tworzenie tabel w bazie danych
+# Creating tables in the database
 Base.metadata.create_all(bind=engine)
-print("Tabele zostały utworzone.")
+print("Tables have been created.")
+
+# Adding sample data to the Difficulty table
+Session = sessionmaker(bind=engine)
+session = Session()
+
+sample_difficulties = [
+    Difficulty(name="Easy", color="Green", score=1),
+    Difficulty(name="Medium", color="Yellow", score=2),
+    Difficulty(name="Hard", color="Red", score=3)
+]
+
+session.bulk_save_objects(sample_difficulties)
+session.commit()
+print("Sample data has been added to the Difficulty table.")
+
