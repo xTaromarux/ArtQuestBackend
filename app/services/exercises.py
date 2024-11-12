@@ -1,71 +1,61 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from typing import List
-import uuid
+from fastapi.responses import FileResponse
+from uuid import UUID
 from database import get_db
-from models.exercises import Exercises as ExercisesModel
-from models.progress import Progress as ProgressModel
-from models.pictures import Pictures as PicturesModel
-from schemas.Sexercises import Exercises as ExerciseSchema, ExercisesCreate
-from fastapi.responses import JSONResponse, Response
+from models.exercises import Exercises
+from models.pictures import Pictures
+import tempfile
+import os
 
 router = APIRouter()
 
-@router.post("/exercises", response_model=ExerciseSchema)
-def create_exercise(exercise: ExercisesCreate, db: Session = Depends(get_db)):
-    db_exercise = ExercisesModel(
-        id=uuid.uuid4(),
-        title=exercise.title,
-        description=exercise.description,
-        aipart=exercise.aipart,
-        colSpan=exercise.colSpan,
-        rowSpan=exercise.rowSpan,
-        cols=exercise.cols,
-        rows=exercise.rows,
-        difficulty_id=exercise.difficulty_id
-    )
-    db.add(db_exercise)
-    db.commit()
-    db.refresh(db_exercise)
-    return db_exercise
+@router.get("/course_exercises/{course_id}", response_model=list[dict])
+def get_course_exercises(course_id: UUID, request: Request, db: Session = Depends(get_db)):
+    """
+    Pobiera listę ćwiczeń dla danego kursu (course_id), w tym id, title, done oraz link do obrazu.
+    """
+    # Pobranie ćwiczeń powiązanych z danym course_id
+    exercises = db.query(Exercises).filter(Exercises.course_id == course_id).all()
+    if not exercises:
+        raise HTTPException(status_code=404, detail="No exercises found for this course")
 
-@router.get("/exercises", response_model=List[ExerciseSchema])
-def read_exercises(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    exercises = db.query(ExercisesModel).offset(skip).limit(limit).all()
-    return exercises
-
-@router.get("/exercises/details", response_model=List[dict])
-def get_exercise_details(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    exercises = db.query(ExercisesModel).offset(skip).limit(limit).all()
-    exercise_details = []
-
+    response = []
     for exercise in exercises:
-        progress = db.query(ProgressModel).filter(ProgressModel.exercise_id == exercise.id).first()
-        pictures = db.query(PicturesModel).filter(PicturesModel.exercise_id == exercise.id).all()
+        # Tworzenie linku do obrazu ćwiczenia, jeśli jest powiązany z obrazem
+        picture_url = str(request.url_for("get_exercise_picture", exercise_id=exercise.id)) if exercise.picture_id else None
 
-        exercise_detail = {
+        # Przygotowanie szczegółów ćwiczenia
+        exercise_details = {
             "id": exercise.id,
             "title": exercise.title,
-            "description": exercise.description,
-            "aipart": exercise.aipart,
-            "colSpan": exercise.colSpan,
-            "rowSpan": exercise.rowSpan,
-            "cols": exercise.cols,
-            "rows": exercise.rows,
-            "difficulty_id": exercise.difficulty_id,
-            "score": progress.score if progress else 0,
-            "progress_description": progress.description if progress else "",
-            "pictures": [
-                {"id": picture.id, "url": f"/api/pictures/{picture.id}"} for picture in pictures
-            ] if pictures else []
+            "done": exercise.done,
+            "picture_url": picture_url
         }
-        exercise_details.append(exercise_detail)
+        response.append(exercise_details)
 
-    return exercise_details
+    return response
 
-@router.get("/pictures/{picture_id}")
-def get_picture(picture_id: uuid.UUID, db: Session = Depends(get_db)):
-    picture = db.query(PicturesModel).filter(PicturesModel.id == picture_id).first()
-    if picture is None:
+
+@router.get("/exercise_picture/{exercise_id}", response_class=FileResponse)
+def get_exercise_picture(exercise_id: UUID, db: Session = Depends(get_db)):
+    """
+    Zwraca obraz powiązany z ćwiczeniem w formacie JPG na podstawie exercise_id.
+    """
+    # Pobranie ćwiczenia i sprawdzenie, czy jest powiązane z obrazem
+    exercise = db.query(Exercises).filter(Exercises.id == exercise_id).first()
+    if not exercise or not exercise.picture_id:
+        raise HTTPException(status_code=404, detail="Exercise or Picture not found")
+    
+    # Pobranie obrazu na podstawie picture_id
+    picture = db.query(Pictures).filter(Pictures.id == exercise.picture_id).first()
+    if not picture or not picture.picture:
         raise HTTPException(status_code=404, detail="Picture not found")
-    return Response(content=picture.picture, media_type="image/jpeg")
+
+    # Zapis obrazu binarnego jako plik tymczasowy JPG
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_jpg:
+        temp_jpg.write(picture.picture)
+        temp_jpg_path = temp_jpg.name
+
+    # Zwróć obraz jako plik JPG
+    return FileResponse(temp_jpg_path, media_type="image/jpeg")

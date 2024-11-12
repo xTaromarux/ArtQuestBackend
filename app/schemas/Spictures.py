@@ -4,7 +4,6 @@ from typing import Optional
 
 class PicturesBase(BaseModel):
     picture: Optional[str] = None 
-    exercise_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True

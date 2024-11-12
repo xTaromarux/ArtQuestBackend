@@ -5,9 +5,13 @@ from typing import Optional
 class UsersBase(BaseModel):
     login: str
     mail: str
-    name: str
-    password: str
+    user_name: str
     group: Optional[str] = None
+
+class UsersMinimalResponse(BaseModel):
+    login: str
+    mail: str
+    user_name: str
 
     class Config:
         from_attributes = True

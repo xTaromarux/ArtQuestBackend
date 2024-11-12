@@ -1,7 +1,8 @@
 version: '3.2'
+
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:16
     container_name: postgresdb
     restart: always
     environment:
@@ -14,6 +15,7 @@ services:
       - ~/.docker-conf/postgres:/var/lib/postgresql/data
     networks:
       - default_network
+
   pgadmin:
     image: dpage/pgadmin4:8.4
     container_name: pgadmin
@@ -25,6 +27,7 @@ services:
       - "5050:80"
     networks:
       - default_network
+
   aqbackend:
     build:
       context: .
@@ -38,6 +41,7 @@ services:
       - POSTGRES_HOST=postgres
     networks:
       - default_network
+
 networks:
   default_network:
     driver: bridge
