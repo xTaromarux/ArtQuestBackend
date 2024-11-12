@@ -1,7 +1,6 @@
 import sqlalchemy as _sql
-import database as _database
-
-class Exercises(_database.Base):
+from database import Base
+class Exercises(Base):
     __tablename__ = 'exercises'
     id = _sql.Column(_sql.UUID, primary_key=True)
     state = _sql.Column(_sql.String, index=True)

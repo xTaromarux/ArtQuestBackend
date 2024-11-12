@@ -1,7 +1,7 @@
 import sqlalchemy as _sql
-import database as _database
+from database import Base
 
-class Posts(_database.Base):
+class Posts(Base):
     __tablename__ = 'posts'
     id = _sql.Column(_sql.UUID, primary_key=True)
     title = _sql.Column(_sql.String, index=True)

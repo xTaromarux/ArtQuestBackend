@@ -1,10 +1,10 @@
 import sqlalchemy as _sql
-import database as _database
+from database import Base
 
-class Pictures(_database.Base):
+class Pictures(Base):
     __tablename__ = 'pictures'
     id = _sql.Column(_sql.UUID, primary_key=True)
-    blob = _sql.Column(_sql.BLOB, index=True)
+    blob = _sql.Column(_sql.LargeBinary, index=True)
     description = _sql.Column(_sql.String, index=True)
     date_added = _sql.Column(_sql.String, index=True)
     

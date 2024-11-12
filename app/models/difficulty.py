@@ -1,7 +1,7 @@
 import sqlalchemy as _sql
-import database as _database
+from database import Base
 
-class Difficulty(_database.Base):
+class Difficulty(Base):
     __tablename__ = 'difficulty'
     id = _sql.Column(_sql.UUID, primary_key=True)
     name = _sql.Column(_sql.String, index=True)

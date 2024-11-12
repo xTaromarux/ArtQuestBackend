@@ -1,7 +1,7 @@
 import sqlalchemy as _sql
-import database as _database
+from database import Base
 
-class Progress(_database.Base):
+class Progress(Base):
     __tablename__ = 'progress'
     id = _sql.Column(_sql.UUID, primary_key=True)
     implementation_stage = _sql.Column(_sql.Integer, index=True)

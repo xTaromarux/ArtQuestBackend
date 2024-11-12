@@ -1,7 +1,7 @@
 import sqlalchemy as _sql
-import database as _database
+from database import Base
 
-class Users(_database.Base):
+class Users(Base):
     __tablename__ = 'users'
     id = _sql.Column(_sql.UUID, primary_key=True)
     group = _sql.Column(_sql.String, index=True)
