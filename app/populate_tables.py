@@ -1,11 +1,11 @@
 import uuid
 from sqlalchemy.orm import Session
 from database import engine, get_db
-from models.difficulties import Difficulties
+from models.difficulty import Difficulty
 from models.users import Users
 from models.posts import Posts
-from models.progresses import progresses
-from models.courses import Courses
+from models.progress import Progress
+from models.exercises import Exercises
 from models.pictures import Pictures
 import os
 
@@ -13,11 +13,11 @@ import os
 def add_sample_data(db: Session):
     # Add sample difficulties
     difficulties = [
-        Difficulties(level= 1, color="Green", experience=1),
-        Difficulties(level= 2, color="Yellow", experience=2),
-        Difficulties(level= 3, color="Red", experience=3),
-        Difficulties(level= 4, color="Purple", experience=4),
-        Difficulties(level= 5, color="Black", experience=5),
+        Difficulty(name="Easy", color="Green", score=1),
+        Difficulty(name="Medium", color="Yellow", score=2),
+        Difficulty(name="Hard", color="Red", score=3),
+        Difficulty(name="Very Hard", color="Purple", score=4),
+        Difficulty(name="Extreme", color="Black", score=5),
     ]
     db.add_all(difficulties)
     db.flush()  # Ensure difficulties have IDs
@@ -32,20 +32,20 @@ def add_sample_data(db: Session):
     db.add_all(users)
     db.flush()  # Ensure users have IDs
 
-    # Add sample courses with additional fields
-    courses = [
-        Courses(title=f"course {i}", description="Description", difficulty_id=difficulties[i % len(difficulties)].id)
+    # Add sample exercises with additional fields
+    exercises = [
+        Exercises(title=f"Exercise {i}", description="Description", aipart="AI Part", colSpan=2, rowSpan=3, cols=4, rows=5, difficulty_id=difficulties[i % len(difficulties)].id)
         for i in range(1, 6)
     ]
-    db.add_all(courses)
-    db.flush()  # Ensure courses have IDs
+    db.add_all(exercises)
+    db.flush()  # Ensure exercises have IDs
 
-    # Add sample pictures for courses
+    # Add sample pictures for exercises
     pictures = []
-    for i, course in enumerate(courses):
+    for i, exercise in enumerate(exercises):
         with open(os.path.join("./db_scripts/images/example_excercise_pictures", avatar_files[i % len(avatar_files)]), "rb") as image_file:
             image_data = image_file.read()
-        pictures.append(Pictures(picture=image_data))
+        pictures.append(Pictures(picture=image_data, exercise_id=exercise.id))
     
     db.add_all(pictures)
 
@@ -58,12 +58,12 @@ def add_sample_data(db: Session):
     db.add_all(posts)
     db.flush()  # Ensure posts have IDs
 
-    # Add sample progresses
-    progresses_records = [
-        progresses(user_id=users[i % len(users)].id, course_id=courses[i % len(courses)].id, score=i * 10, description="progresses description")
+    # Add sample progress
+    progress_records = [
+        Progress(user_id=users[i % len(users)].id, exercise_id=exercises[i % len(exercises)].id, score=i * 10, description="Progress description")
         for i in range(1, 6)
     ]
-    db.add_all(progresses_records)
+    db.add_all(progress_records)
 
     db.commit()
 

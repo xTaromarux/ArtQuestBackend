@@ -1,18 +1,18 @@
 from pydantic import BaseModel
 from uuid import UUID
 
-class DifficultiesBase(BaseModel):
-    level: int
+class DifficultyBase(BaseModel):
+    name: str
     color: str
-    experience: int
+    score: int
 
     class Config:
         from_attributes = True
 
-class DifficultiesCreate(DifficultiesBase):
+class DifficultyCreate(DifficultyBase):
     pass
 
-class Difficulties(DifficultiesBase):
+class Difficulty(DifficultyBase):
     id: UUID
 
     class Config:

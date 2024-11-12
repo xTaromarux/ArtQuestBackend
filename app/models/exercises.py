@@ -7,13 +7,17 @@ class Exercises(_database.Base):
     __tablename__ = 'exercises'
     id = _sql.Column(_sql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = _sql.Column(_sql.String, nullable=False)
-    done = _sql.Column(_sql.Boolean, nullable=False)
-    course_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('courses.id'))
-    picture_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('pictures.id'))
+    description = _sql.Column(_sql.String, nullable=False)
+    aipart = _sql.Column(_sql.String, nullable=True)
+    colSpan = _sql.Column(_sql.Integer, nullable=True)
+    rowSpan = _sql.Column(_sql.Integer, nullable=True)
+    cols = _sql.Column(_sql.Integer, nullable=True)
+    rows = _sql.Column(_sql.Integer, nullable=True)
+    difficulty_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('difficulty.id'))
 
-    courses = relationship('Courses', back_populates='exercises')
-    pictures = relationship('Pictures', back_populates='exercises')
-    views = relationship('Views', back_populates='exercises')
+    difficulty = relationship('Difficulty', back_populates='exercises')
+    pictures = relationship('Pictures', back_populates='exercise')
+    progress = relationship('Progress', back_populates='exercise')
 
     def __repr__(self):
-        return f"<Exercises(id={self.id}, title='{self.title}', done='{self.done}', course_id={self.course_id}, picture_id={self.picture_id})>"
+        return f"<Exercises(id={self.id}, title='{self.title}', description='{self.description}', difficulty_id='{self.difficulty_id}')>"

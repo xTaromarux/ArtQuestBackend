@@ -4,10 +4,16 @@ ENV APP_DIR /app
 
 RUN mkdir -p ${APP_DIR}
 
-COPY ./app ${APP_DIR}}
+COPY ./app ${APP_DIR}
 
-WORKDIR ${APP_DIR}}
+WORKDIR ${APP_DIR}
 
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip
+
+RUN chmod 644 requirements.txt 
+
+RUN pip3 install -r requirements.txt --no-cache-dir --log /app/pip_log.txt
+
+RUN cat /app/pip_log.txt
 
 CMD [ "python", "main.py"]
