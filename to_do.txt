@@ -1,0 +1,20 @@
+add postgresl.conf file
+add pg_hba.conf file
+
+add file that setup tables
+
+add file that inject files
+
+stworzyć readme -> Gosia, żebyś ogarnęła co jest 5
+
+dokonczyc api -> Gosia, żebyś się nauczyła fastapi
+
+napisac jak uzywac do developmentu
+
+odseparowac kiedy prod kiedy dev
+
+1. dodac do modelu te wszytskie bazy 
+2. schema 
+3. brew 
+4. poprawić convert_jpg_to_binary.py
+5. READ_MEx
