@@ -1,16 +1,19 @@
-import uuid as _uuid
-import pydantic as _pydantic
+from pydantic import BaseModel
+from uuid import UUID
 
-class _BaseDifficulty(_pydantic.BaseModel):
+class DifficultyBase(BaseModel):
     name: str
     color: str
     score: int
 
-class Difficulty(_BaseDifficulty):
-    id: _uuid.UUID
+    class Config:
+        from_attributes = True
+
+class DifficultyCreate(DifficultyBase):
+    pass
+
+class Difficulty(DifficultyBase):
+    id: UUID
 
     class Config:
-        orm_mode = True
-
-class CreateDifficulty(_BaseDifficulty):
-    pass
+        from_attributes = True

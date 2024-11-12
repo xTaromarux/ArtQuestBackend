@@ -1,14 +1,23 @@
 import sqlalchemy as _sql
-from database import Base
-class Exercises(Base):
+import database as _database
+import uuid
+from sqlalchemy.orm import relationship
+
+class Exercises(_database.Base):
     __tablename__ = 'exercises'
-    id = _sql.Column(_sql.UUID, primary_key=True)
-    state = _sql.Column(_sql.String, index=True)
-    description = _sql.Column(_sql.String, index=True)
-    title = _sql.Column(_sql.Integer, index=True)
-    picture_id = _sql.Column(_sql.UUID, index=True)
-    difficulty_id = _sql.Column(_sql.UUID, index=True)
+    id = _sql.Column(_sql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = _sql.Column(_sql.String, nullable=False)
+    description = _sql.Column(_sql.String, nullable=False)
+    aipart = _sql.Column(_sql.String, nullable=True)
+    colSpan = _sql.Column(_sql.Integer, nullable=True)
+    rowSpan = _sql.Column(_sql.Integer, nullable=True)
+    cols = _sql.Column(_sql.Integer, nullable=True)
+    rows = _sql.Column(_sql.Integer, nullable=True)
+    difficulty_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('difficulty.id'))
+
+    difficulty = relationship('Difficulty', back_populates='exercises')
+    pictures = relationship('Pictures', back_populates='exercise')
+    progress = relationship('Progress', back_populates='exercise')
 
     def __repr__(self):
-        return (f"<Exercises(id={self.id}, state='{self.state}', "
-                f"description='{self. description}', title='{self.title}', picture_id='{self.picture_id}, difficulty_id='{self.difficulty_id})>")
+        return f"<Exercises(id={self.id}, title='{self.title}', description='{self.description}', difficulty_id='{self.difficulty_id}')>"

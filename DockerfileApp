@@ -2,12 +2,22 @@ FROM python:3.8.10
 
 ENV APP_DIR /app
 
+ENV DB_SCRIPT_DIR /db_scripts
+
+RUN mkdir -p ${DB_SCRIPT_DIR}
+
+COPY ./db_scripts ${DB_SCRIPT_DIR} 
+
 RUN mkdir -p ${APP_DIR}
 
-COPY ./app ${APP_DIR}}
+COPY ./app ${APP_DIR}
 
-WORKDIR ${APP_DIR}}
+WORKDIR ${APP_DIR}
 
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip
 
-CMD [ "python", "main.py"]
+RUN chmod 644 requirements.txt 
+
+RUN pip3 install -r requirements.txt --no-cache-dir --log /app/pip_log.txt
+
+CMD ["python", "main.py"]

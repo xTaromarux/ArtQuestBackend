@@ -1,20 +1,24 @@
-import uuid as _uuid
-import pydantic as _pydantic
+from pydantic import BaseModel
+from uuid import UUID
+from datetime import datetime
+from typing import Optional
 
-class _BasePosts(_pydantic.BaseModel):
+class PostsBase(BaseModel):
     title: str
     description: str
-    state: str
-    date_added: str
-    date_updated: str
-    picture_id: _uuid.UUID
-    user_id: _uuid.UUID
-
-class Posts(_BasePosts):
-    id: _uuid.UUID
+    picture_url: Optional[str] = None  
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class CreatePosts(_BasePosts):
+class PostsCreate(PostsBase):
     pass
+
+class Posts(PostsBase):
+    id: UUID
+    date_added: datetime
+    date_updated: datetime
+    user_id: Optional[UUID] = None
+
+    class Config:
+        from_attributes = True
