@@ -1,0 +1,43 @@
+version: "3.2"
+services:
+  postgres:
+    image: postgres:16.2-alpine
+    container_name: "postgres"
+    hostname: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/.docker-conf/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=pg_admin
+      - POSTGRES_USER=pg_admin
+      - POSTGRES_DB=db_artquest
+    networks:
+      - aq_network
+  pgadmin:
+    image: dpage/pgadmin4:8.4
+    container_name: pgadmin4_container
+    hostname: pgadmin4
+    restart: always
+    user: '$UID:$GID'
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@pg4
+      PGADMIN_DEFAULT_PASSWORD: pg_admin
+    volumes:
+      - ~/.docker-conf/pgadmin-data:/var/lib/pgadmin
+    networks:
+      - aq_network
+  model:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "model"
+    hostname: "model"
+    environment: #todo
+
+networks:
+  aq_network:
+    driver: bridge
+
