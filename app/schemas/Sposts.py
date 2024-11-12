@@ -13,8 +13,18 @@ class PostsBase(BaseModel):
 class PostsCreate(PostsBase):
     pass
 
-class PostsUpdate(PostsBase):
-    pass
+class PostsUpdate(BaseModel):
+    description: Optional[str] = None
+
+
+class PostDetailsResponse(BaseModel):
+    description: Optional[str]
+    date_added: datetime
+    date_updated: datetime
+    reactions: Optional[int]
+    picture_url: Optional[str]  # Link do endpointu zwracającego obraz
+    user_name: str
+    login: str
 
 class Posts(PostsBase):
     id: UUID
