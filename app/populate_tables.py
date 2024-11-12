@@ -26,7 +26,7 @@ def add_sample_data(db: Session):
     avatar_files = ["example_zero.jpg", "example_one.jpg", "example_two.jpg", "example_three.jpg"]
     users = []
     for i in range(1, 6):
-        with open(os.path.join("/db_scripts/images/example_excercise_pictures", avatar_files[i % len(avatar_files)]), "rb") as image_file:
+        with open(os.path.join("./db_scripts/images/example_excercise_pictures", avatar_files[i % len(avatar_files)]), "rb") as image_file:
             avatar_data = image_file.read()
         users.append(Users(login=f"user{i}", password="password", mail=f"user{i}@example.com", group=None, name=f"User {i}", avatar=avatar_data))
     db.add_all(users)
@@ -43,7 +43,7 @@ def add_sample_data(db: Session):
     # Add sample pictures for exercises
     pictures = []
     for i, exercise in enumerate(exercises):
-        with open(os.path.join("/db_scripts/images/example_excercise_pictures", avatar_files[i % len(avatar_files)]), "rb") as image_file:
+        with open(os.path.join("./db_scripts/images/example_excercise_pictures", avatar_files[i % len(avatar_files)]), "rb") as image_file:
             image_data = image_file.read()
         pictures.append(Pictures(picture=image_data, exercise_id=exercise.id))
     
@@ -52,7 +52,7 @@ def add_sample_data(db: Session):
     # Add sample posts with pictures
     posts = []
     for i in range(1, 6):
-        with open(os.path.join("/db_scripts/images/example_excercise_pictures", avatar_files[i % len(avatar_files)]), "rb") as image_file:
+        with open(os.path.join("./db_scripts/images/example_excercise_pictures", avatar_files[i % len(avatar_files)]), "rb") as image_file:
             picture_data = image_file.read()
         posts.append(Posts(title=f"Post {i}", description="Description", picture=picture_data, user_id=users[i % len(users)].id))
     db.add_all(posts)

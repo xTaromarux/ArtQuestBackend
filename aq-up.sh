@@ -40,13 +40,11 @@ else
     find . -type d -name "__pycache__" -exec rm -r {} +
     python3 convert_jpg_to_binary.py --dict_name example_excercise_pictures --safe_mode yes
     cd ..
+    docker exec python create_tables.py
+    docker exec python populate_tables.py
 
     # Deactivate virtual environment
-    echo -e "\n ${GREEN}Operation completed! ${NC}\n"
-
-    # chmod +x db_scripts/inject_db_seed.sh
-
-    # sh db_scripts/inject_db_seed.sh
+    echo -e "\n${GREEN}Operation completed!${NC}\n"
 
     # Show running Docker containers
     docker ps -a

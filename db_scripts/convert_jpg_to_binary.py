@@ -9,7 +9,6 @@ def convert_jpg_to_bin(jpg_path, bin_path):
 
     with open(bin_path, 'wb') as bin_file:
         bin_file.write(jpg_data)
-        bin_file.flush()
 
 def main():
     parser = argparse.ArgumentParser(description="This script converts jpg files into binary files.")
@@ -46,7 +45,6 @@ def main():
             print(e)
             return
     else:
-        print(123)
         os.mkdir(output_directory_path)
 
     for filename in os.listdir(input_directory_path):
