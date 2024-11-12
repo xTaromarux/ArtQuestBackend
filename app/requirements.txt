@@ -47,3 +47,4 @@ opencv-python
 matplotlib
 kornia>=0.6.11
 pytz
+openai==0.28

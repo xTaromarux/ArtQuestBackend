@@ -169,3 +169,4 @@ cython_debug/
 /app/ai_model/lightglue/_flash/
 *-checkpoint.ipynb
 *.pth
+.env
