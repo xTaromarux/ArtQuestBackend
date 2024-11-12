@@ -4,6 +4,7 @@ from typing import Optional
 
 class ViewsDataBase(BaseModel):
     description: str
+    short_description: str
     view_id: UUID
 
     class Config:

@@ -191,15 +191,17 @@ def add_sample_data(db: Session):
     db.add_all(views_data)
     db.flush()
 
-    # Add sample views_data for each view
+    # Add sample views_data with short_description for each view
     views_details = [
         Views_data(
             id=uuid.uuid4(),
+            short_description="Python Basics Short Description",
             description="This is a detailed view of Exercise 1 for Python Basics",
             view_id=views_data[0].id
         ),
         Views_data(
             id=uuid.uuid4(),
+            short_description="Data Science Intro Short Description",
             description="This is another detailed view for the Data Science Intro Exercise",
             view_id=views_data[1].id
         ),
