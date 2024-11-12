@@ -4,42 +4,42 @@ from typing import List
 import uuid
 
 from database import get_db
-from models.progress import Progress as ProgressModel
-from schemas.Sprogress import Progress as ProgressSchema, ProgressCreate
+from models.progresses import Progresses as ProgressesModel
+from schemas.Sprogresses import progresses as progressesSchema, progressesCreate
 
 router = APIRouter()
 
-@router.post("/progress", response_model=ProgressSchema)
-def create_progress(progress: ProgressCreate, db: Session = Depends(get_db)):
-    db_progress = ProgressModel(
+@router.post("/progresses", response_model=progressesSchema)
+def create_progresses(progresses: progressesCreate, db: Session = Depends(get_db)):
+    db_progresses = ProgressesModel(
         id=uuid.uuid4(),
-        score=progress.score,
-        description=progress.description,
-        user_id=progress.user_id,
-        exercise_id=progress.exercise_id
+        score=progresses.score,
+        description=progresses.description,
+        user_id=progresses.user_id,
+        course_id=progresses.course_id
     )
-    db.add(db_progress)
+    db.add(db_progresses)
     db.commit()
-    db.refresh(db_progress)
-    return db_progress
+    db.refresh(db_progresses)
+    return db_progresses
 
-@router.get("/progress", response_model=List[ProgressSchema])
-def read_progress(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    progress_records = db.query(ProgressModel).offset(skip).limit(limit).all()
-    return progress_records
+@router.get("/progresses", response_model=List[ProgressesSchema])
+def read_progresses(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    progresses_records = db.query(progressesModel).offset(skip).limit(limit).all()
+    return progresses_records
 
-@router.get("/progress/{progress_id}", response_model=ProgressSchema)
-def read_progress_by_id(progress_id: uuid.UUID, db: Session = Depends(get_db)):
-    progress = db.query(ProgressModel).filter(ProgressModel.id == progress_id).first()
-    if progress is None:
-        raise HTTPException(status_code=404, detail="Progress not found")
-    return progress
+@router.get("/progresses/{progresses_id}", response_model=ProgressesSchema)
+def read_progresses_by_id(progresses_id: uuid.UUID, db: Session = Depends(get_db)):
+    progresses = db.query(progressesModel).filter(progressesModel.id == progresses_id).first()
+    if progresses is None:
+        raise HTTPException(status_code=404, detail="progresses not found")
+    return progresses
 
-@router.delete("/progress/{progress_id}", response_model=ProgressSchema)
-def delete_progress(progress_id: uuid.UUID, db: Session = Depends(get_db)):
-    progress = db.query(ProgressModel).filter(ProgressModel.id == progress_id).first()
-    if progress is None:
-        raise HTTPException(status_code=404, detail="Progress not found")
-    db.delete(progress)
+@router.delete("/progresses/{progresses_id}", response_model=progressesSchema)
+def delete_progresses(progresses_id: uuid.UUID, db: Session = Depends(get_db)):
+    progresses = db.query(progressesModel).filter(progressesModel.id == progresseses_id).first()
+    if progresses is None:
+        raise HTTPException(status_code=404, detail="progresses not found")
+    db.delete(progresses)
     db.commit()
-    return progress
+    return progresses

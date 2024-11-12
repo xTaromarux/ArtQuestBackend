@@ -22,11 +22,11 @@ def read_pictures(skip: int = 0, limit: int = 10, db: Session = Depends(get_db))
     return pictures
 
 @router.post("/pictures", response_model=PictureSchema)
-async def create_picture(exercise_id: uuid.UUID, file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def create_picture(file: UploadFile = File(...), db: Session = Depends(get_db)):
     file_content = await file.read()
     db_picture = Pictures(
         picture=file_content,
-        exercise_id=exercise_id
+
     )
     db.add(db_picture)
     db.commit()

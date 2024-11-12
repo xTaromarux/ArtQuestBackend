@@ -1,14 +1,50 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import uuid
+import base64
+from PIL import Image
+import io
 
 from database import get_db
 from models.posts import Posts
-from schemas.Sposts import Posts as PostSchema, PostsCreate as PostCreate
+from schemas.Sposts import Posts as PostSchema, PostsCreate as PostCreate, PostsUpdate as PostUpdate
 
 router = APIRouter()
 
+def convert_to_jpg_and_base64(image_binary):
+    image = Image.open(io.BytesIO(image_binary))
+    with io.BytesIO() as output:
+        image.save(output, format="JPEG")
+        return base64.b64encode(output.getvalue()).decode("utf-8")
+
+@router.put("/posts/{post_id}", response_model=PostSchema)
+async def update_post(
+    post_id: uuid.UUID,
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    file: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
+    db_post = db.query(Posts).filter(Posts.id == post_id).first()
+    if db_post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    if title:
+        db_post.title = title
+    if description:
+        db_post.description = description
+    if file:
+        file_content = await file.read()
+        db_post.picture = file_content
+    
+    db.commit()
+    db.refresh(db_post)
+    
+    if db_post.picture:
+        db_post.picture = convert_to_jpg_and_base64(db_post.picture)
+    
+    return db_post
 @router.post("/posts", response_model=PostSchema)
 async def create_post(
     title: str = Form(...),
