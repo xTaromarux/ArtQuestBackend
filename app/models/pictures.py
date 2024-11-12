@@ -1,14 +1,15 @@
 import sqlalchemy as _sql
-from database import Base
+import database as _database
+import uuid
+from sqlalchemy.orm import relationship
 
-class Pictures(Base):
+class Pictures(_database.Base):
     __tablename__ = 'pictures'
-    id = _sql.Column(_sql.UUID, primary_key=True)
-    blob = _sql.Column(_sql.LargeBinary, index=True)
-    description = _sql.Column(_sql.String, index=True)
-    date_added = _sql.Column(_sql.String, index=True)
-    
+    id = _sql.Column(_sql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    picture = _sql.Column(_sql.LargeBinary, nullable=True)
+    exercise_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('exercises.id'))
+
+    exercise = relationship('Exercises', back_populates='pictures')
 
     def __repr__(self):
-        return (f"<Pictures(id={self.id}, blob='{self.blob}', "
-                f"description='{self. description}', date_added='{self.date_added}')>")
+        return f"<Pictures(id={self.id}, picture='{self.picture}', exercise_id='{self.exercise_id}')>"

@@ -1,18 +1,25 @@
-import uuid as _uuid
-import pydantic as _pydantic
+from pydantic import BaseModel
+from uuid import UUID
+from typing import Optional
 
-class _BaseExercises(_pydantic.BaseModel):
-    state: str
+class ExercisesBase(BaseModel):
+    title: str
     description: str
-    title: int
-    picture_id: _uuid.UUID
-    difficulty_id: _uuid.UUID
-
-class Exercises(_BaseExercises):
-    id: _uuid.UUID
+    aipart: Optional[str] = None
+    colSpan: Optional[int] = None
+    rowSpan: Optional[int] = None
+    cols: Optional[int] = None
+    rows: Optional[int] = None
+    difficulty_id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class CreateExercises(_BaseExercises):
+class ExercisesCreate(ExercisesBase):
     pass
+
+class Exercises(ExercisesBase):
+    id: UUID
+
+    class Config:
+        from_attributes = True

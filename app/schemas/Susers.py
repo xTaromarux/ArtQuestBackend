@@ -1,20 +1,22 @@
-import uuid as _uuid
-import pydantic as _pydantic
-import datetime as _dt
+from pydantic import BaseModel
+from uuid import UUID
+from typing import Optional
 
-class _BaseUsers(_pydantic.BaseModel):
-    group: str
-    mail: str
+class UsersBase(BaseModel):
     login: str
+    mail: str
+    name: str
     password: str
-    date_added: _dt.date
-    date_updated: _dt.date
-
-class Users(_BaseUsers):
-    id: _uuid.UUID
+    group: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class CreateUsers(_BaseUsers):
+class UsersCreate(UsersBase):
     pass
+
+class Users(UsersBase):
+    id: UUID
+
+    class Config:
+        from_attributes = True

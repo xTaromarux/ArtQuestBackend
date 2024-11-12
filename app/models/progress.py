@@ -1,15 +1,18 @@
 import sqlalchemy as _sql
-from database import Base
+import database as _database
+import uuid
+from sqlalchemy.orm import relationship
 
-class Progress(Base):
+class Progress(_database.Base):
     __tablename__ = 'progress'
-    id = _sql.Column(_sql.UUID, primary_key=True)
-    implementation_stage = _sql.Column(_sql.Integer, index=True)
-    picture_id = _sql.Column(_sql.UUID, index=True)
-    exercises_id = _sql.Column(_sql.UUID, index=True)
-    user_id = _sql.Column(_sql.UUID, index=True)
-    
+    id = _sql.Column(_sql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    score = _sql.Column(_sql.Integer, nullable=False)
+    description = _sql.Column(_sql.String, nullable=True)
+    user_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('users.id'))
+    exercise_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('exercises.id'))
+
+    user = relationship('Users', back_populates='progress')
+    exercise = relationship('Exercises', back_populates='progress')
 
     def __repr__(self):
-        return (f"<Progress(id={self.id}, implementation_stage='{self.implementation_stage}', "
-                f"picture_id='{self. picture_id}', exercises_id='{self.exercises_id}', user_id='{self.user_id})>")
+        return f"<Progress(id={self.id}, score={self.score}, description='{self.description}', user_id='{self.user_id}', exercise_id='{self.exercise_id}')>"

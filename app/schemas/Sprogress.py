@@ -1,17 +1,21 @@
-import uuid as _uuid
-import pydantic as _pydantic
+from pydantic import BaseModel
+from uuid import UUID
+from typing import Optional
 
-class _BaseProgress(_pydantic.BaseModel):
-    implementation_stage: int
-    picture_id: _uuid.UUID
-    exercises_id: _uuid.UUID
-    user_id: _uuid.UUID
-
-class Progress(_BaseProgress):
-    id: _uuid.UUID
+class ProgressBase(BaseModel):
+    score: int
+    description: Optional[str] = None
+    user_id: UUID
+    exercise_id: UUID
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class CreateProgress(_BaseProgress):
+class ProgressCreate(ProgressBase):
     pass
+
+class Progress(ProgressBase):
+    id: UUID
+
+    class Config:
+        from_attributes = True

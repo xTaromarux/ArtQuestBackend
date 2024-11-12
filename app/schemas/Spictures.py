@@ -1,16 +1,19 @@
-import uuid as _uuid
-import pydantic as _pydantic
+from pydantic import BaseModel
+from uuid import UUID
+from typing import Optional
 
-class _BasePictures(_pydantic.BaseModel):
-    blob: bytes
-    description: str
-    date_added: str
-
-class Pictures(_BasePictures):
-    id: _uuid.UUID
+class PicturesBase(BaseModel):
+    picture: Optional[str] = None 
+    exercise_id: Optional[UUID] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class CreatePictures(_BasePictures):
+class PicturesCreate(PicturesBase):
     pass
+
+class Pictures(PicturesBase):
+    id: UUID
+
+    class Config:
+        from_attributes = True
