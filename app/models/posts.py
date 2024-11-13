@@ -9,7 +9,7 @@ class Posts(_database.Base):
     description = _sql.Column(_sql.String, nullable=True)
     reactions = _sql.Column(_sql.Integer, nullable=True)
     date_added = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp())
-    date_updated = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp(), onupdate=_sql.func.current_timestamp())
+    date_updated = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp())
     user_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('users.id'))
     picture_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('pictures.id'))
 

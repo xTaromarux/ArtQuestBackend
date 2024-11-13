@@ -9,8 +9,8 @@ class Comments(_database.Base):
     id = _sql.Column(_sql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     description = _sql.Column(_sql.String, nullable=False)
     reactions = _sql.Column(_sql.Integer, nullable=False)
-    date_added = _sql.Column(_sql.DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    date_updated = _sql.Column(_sql.DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    date_added = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp())
+    date_updated = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp())
     user_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('users.id'))
     post_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('posts.id'))
 

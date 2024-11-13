@@ -10,8 +10,8 @@ class Statistics(_database.Base):
     experience = _sql.Column(_sql.Integer, nullable=False)
     level = _sql.Column(_sql.Integer, nullable=False)
     courses = _sql.Column(_sql.Integer, nullable=False)
-    start_strike = _sql.Column(_sql.DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    end_strike = _sql.Column(_sql.DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    start_strike = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp())
+    end_strike = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp())
     user_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('users.id'))
 
     users = relationship('Users', back_populates='statistics')

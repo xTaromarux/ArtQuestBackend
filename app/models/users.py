@@ -11,7 +11,7 @@ class Users(_database.Base):
     mail = _sql.Column(_sql.String, nullable=False)
     group = _sql.Column(_sql.String, nullable=True)
     user_name = _sql.Column(_sql.String, nullable=False)
-    created_date = _sql.Column(_sql.DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_date = _sql.Column(_sql.DateTime, nullable=False, default=_sql.func.current_timestamp())
     picture_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('pictures.id'))
 
 
@@ -22,6 +22,7 @@ class Users(_database.Base):
     statistics = relationship('Statistics', back_populates='users')
     user_course = relationship('User_course', back_populates='users')
     user_achievements = relationship('User_achievements', back_populates='users')
+    exercise_feedback = relationship('Exercise_feedback', back_populates='users')
 
 
     def __repr__(self):

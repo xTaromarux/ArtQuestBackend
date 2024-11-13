@@ -14,6 +14,7 @@ class Exercises(_database.Base):
     courses = relationship('Courses', back_populates='exercises')
     pictures = relationship('Pictures', back_populates='exercises')
     views = relationship('Views', back_populates='exercises')
+    exercise_feedback = relationship('Exercise_feedback', back_populates='exercises')
 
     def __repr__(self):
         return f"<Exercises(id={self.id}, title='{self.title}', done='{self.done}', course_id={self.course_id}, picture_id={self.picture_id})>"

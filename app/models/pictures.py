@@ -14,6 +14,7 @@ class Pictures(_database.Base):
     views_pictures = relationship('Views_pictures', back_populates='pictures')
     achievements = relationship('Achievements', back_populates='pictures')
     users = relationship('Users', back_populates='pictures')
+    exercise_feedback = relationship('Exercise_feedback', back_populates='pictures')
     
     def __repr__(self):
         return f"<Pictures(id={self.id}, picture='{self.picture}')>"
