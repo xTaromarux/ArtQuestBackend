@@ -13,3 +13,4 @@ from .views_data import Views_data
 from .views_pictures import Views_pictures
 from .achievements import Achievements
 from .user_achievements import User_achievements
+from .exercise_feedback import Exercise_feedback

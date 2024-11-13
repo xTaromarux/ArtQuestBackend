@@ -1,6 +1,6 @@
 import uuid
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from database import engine, get_db
 from models.users import Users
@@ -13,6 +13,9 @@ from models.exercises import Exercises
 from models.views import Views
 from models.views_pictures import Views_pictures
 from models.views_data import Views_data
+from models.statistics import Statistics
+from models.achievements import Achievements
+from models.user_achievements import User_achievements
 
 # Function to convert images to binary
 def convert_image_to_binary(image_path):
@@ -222,6 +225,52 @@ def add_sample_data(db: Session):
         )
     ]
     db.add_all(views_pictures_data)
+
+    # Add sample statistics for each user
+    statistics_data = [
+        Statistics(
+            id=uuid.uuid4(),
+            experience=150,
+            level=3,
+            courses=2,
+            start_strike=datetime.now() - timedelta(days=10),
+            end_strike=datetime.now(),
+            user_id=users[0].id
+        ),
+        Statistics(
+            id=uuid.uuid4(),
+            experience=200,
+            level=4,
+            courses=3,
+            start_strike=datetime.now() - timedelta(days=20),
+            end_strike=datetime.now(),
+            user_id=users[1].id
+        ),
+    ]
+    db.add_all(statistics_data)
+
+    # Add sample achievements
+    achievements_data = [
+        Achievements(
+            id=uuid.uuid4(),
+            experience=50,
+            picture_id=pictures[2].id if len(pictures) > 2 else None
+        ),
+        Achievements(
+            id=uuid.uuid4(),
+            experience=30,
+            picture_id=pictures[3].id if len(pictures) > 3 else None
+        ),
+    ]
+    db.add_all(achievements_data)
+    db.flush()
+
+    # Link achievements to users
+    user_achievements_data = [
+        User_achievements(id=uuid.uuid4(), user_id=users[0].id, achievement_id=achievements_data[0].id),
+        User_achievements(id=uuid.uuid4(), user_id=users[1].id, achievement_id=achievements_data[1].id)
+    ]
+    db.add_all(user_achievements_data)
 
     db.commit()
     print("Sample data added successfully.")

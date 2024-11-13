@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Request
 from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta, timezone
@@ -11,7 +11,11 @@ from models.pictures import Pictures
 from models.posts import Posts
 from models.user_achievements import User_achievements
 from models.user_course import User_course
+from models.statistics import Statistics
+from models.user_achievements import User_achievements
+from models.achievements import Achievements
 from schemas.Susers import Users as UsersSchema, UsersMinimalResponse
+
 
 router = APIRouter()
 
@@ -142,3 +146,58 @@ def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": "User, associated picture, posts, user_course entries, and user_achievements entries deleted successfully"}
+
+@router.get("/user/{user_id}/details", response_model=dict)
+def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_db)):
+    """
+    Pobiera szczegóły użytkownika, w tym statystyki, osiągnięcia i obrazy.
+    """
+    # Pobranie użytkownika
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Pobranie statystyk użytkownika
+    statistics = db.query(Statistics).filter(Statistics.user_id == user_id).first()
+    if not statistics:
+        raise HTTPException(status_code=404, detail="Statistics not found")
+
+    # Pobranie osiągnięć użytkownika z tabeli user_achievements i achievements
+    user_achievements = (
+        db.query(Achievements.experience, Achievements.picture_id)
+        .join(User_achievements, User_achievements.achievement_id == Achievements.id)
+        .filter(User_achievements.user_id == user_id)
+        .all()
+    )
+
+    # Przygotowanie listy osiągnięć z linkami do obrazów
+    achievements = []
+    for achievement in user_achievements:
+        picture_url = (
+            str(request.url_for("get_view_picture", picture_id=achievement.picture_id))
+            if achievement.picture_id else None
+        )
+        achievements.append({
+            "experience": achievement.experience,
+            "picture_url": picture_url
+        })
+
+    # Przygotowanie odpowiedzi
+    response = {
+        "user": {
+            "login": user.login,
+            "mail": user.mail,
+            "user_name": user.user_name,
+            "created_date": user.created_date
+        },
+        "statistics": {
+            "experience": statistics.experience,
+            "level": statistics.level,
+            "courses": statistics.courses,
+            "start_strike": statistics.start_strike,
+            "end_strike": statistics.end_strike
+        },
+        "achievements": achievements
+    }
+    
+    return response

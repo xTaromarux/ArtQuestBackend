@@ -160,3 +160,25 @@ def update_post_description(
         login=post.user.login
     )
     return response
+
+@router.delete("/post/{post_id}", response_model=dict)
+def delete_post(post_id: UUID, db: Session = Depends(get_db)):
+    """
+    Usuwa post oraz przypisane do niego zdjęcie na podstawie post_id.
+    """
+    # Pobranie postu z bazy danych
+    post = db.query(Posts).filter(Posts.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    # Sprawdzenie, czy post ma przypisane zdjęcie i jego usunięcie
+    if post.picture_id:
+        picture = db.query(Pictures).filter(Pictures.id == post.picture_id).first()
+        if picture:
+            db.delete(picture)
+
+    # Usunięcie postu
+    db.delete(post)
+    db.commit()
+    
+    return {"message": "Post and associated picture deleted successfully"}

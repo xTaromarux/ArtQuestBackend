@@ -17,7 +17,7 @@ router = APIRouter()
 def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
     Pobiera szczegóły widoku na podstawie exercise_id, w tym template, ai_part, next_view_id, previous_view_id,
-    opisy, krótkie opisy oraz linki do obrazów.
+    opisy, krótkie opisy oraz linki do obrazów wraz z ich picture_id.
     """
     # Pobranie widoku związanego z exercise_id
     view = db.query(Views).filter(Views.exercise_id == exercise_id).first()
@@ -29,10 +29,14 @@ def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(
     descriptions = [desc[0] for desc in descriptions_data]
     short_descriptions = [desc[1] for desc in descriptions_data if desc[1] is not None]
 
-    # Pobranie linków do obrazów z views_pictures i pictures
-    picture_ids = db.query(Views_pictures.picture_id).filter(Views_pictures.view_id == view.id).all()
+    # Pobranie picture_id oraz linków do obrazów z views_pictures i pictures
+    picture_data = db.query(Views_pictures.picture_id).filter(Views_pictures.view_id == view.id).all()
     picture_urls = [
-        str(request.url_for("get_view_picture", picture_id=pic_id[0])) for pic_id in picture_ids
+        {
+            "picture_id": pic_id[0],
+            "url": str(request.url_for("get_view_picture", picture_id=pic_id[0]))
+        }
+        for pic_id in picture_data
     ]
 
     # Przygotowanie odpowiedzi
@@ -43,10 +47,11 @@ def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(
         "previous_view_id": view.previous_view_id,
         "descriptions": descriptions,
         "short_descriptions": short_descriptions,
-        "picture_urls": picture_urls
+        "picture_urls": picture_urls  # Lista słowników z picture_id i URL
     }
     
     return response
+
 
 @router.get("/view_picture/{picture_id}", response_class=FileResponse)
 def get_view_picture(picture_id: UUID, db: Session = Depends(get_db)):
