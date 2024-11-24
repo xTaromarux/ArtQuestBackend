@@ -30,9 +30,10 @@ from app.services import (
     posts as post_service,
     courses as course_service,
     views as views_service,
-    # pictures as picture_service,
+    progresses as progresses_service,
     # difficulties as difficulties_service
     exercises as exercises_service
+
 )
 
 # Dodawanie tras do aplikacji FastAPI
@@ -41,6 +42,7 @@ app.include_router(post_service.router, prefix="/api")
 app.include_router(course_service.router, prefix="/api")
 app.include_router(exercises_service.router, prefix="/api")
 app.include_router(views_service.router, prefix="/api")
+app.include_router(progresses_service.router, prefix="/api")
 # app.include_router(picture_service.router, prefix="/api")
 # app.include_router(difficulties_service.router, prefix="/api")
 

@@ -17,7 +17,6 @@ class Users(_database.Base):
 
     pictures = relationship('Pictures', back_populates='users')
     posts = relationship('Posts', back_populates='user')
-    progresses = relationship('Progresses', back_populates='users')
     comments = relationship('Comments', back_populates='users')
     statistics = relationship('Statistics', back_populates='users')
     user_course = relationship('User_course', back_populates='users')

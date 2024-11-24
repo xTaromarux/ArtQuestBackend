@@ -11,6 +11,8 @@ class User_course(_database.Base):
 
     courses = relationship('Courses', back_populates='user_course')
     users = relationship('Users', back_populates='user_course')
+    progresses = relationship('Progresses', back_populates='user_course')
+
 
     def __repr__(self):
         return f"<User_course(id={self.id}, course_id={self.course_id}, user_id={self.user_id})>"

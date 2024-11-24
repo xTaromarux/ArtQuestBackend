@@ -16,7 +16,6 @@ class Courses(_database.Base):
 
     difficulties = relationship('Difficulties', back_populates='courses')
     pictures = relationship('Pictures', back_populates='courses')
-    progresses = relationship('Progresses', back_populates='courses')
     exercises = relationship('Exercises', back_populates='courses')
     user_course = relationship('User_course', back_populates='courses')
     views = relationship('Views', back_populates='courses')
