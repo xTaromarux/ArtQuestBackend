@@ -12,14 +12,21 @@ import os
 
 router = APIRouter()
 
-@router.get("/courses/{user_id}", response_model=list[UUID])
+@router.get("/courses/{user_id}", response_model=list[dict])
 def get_courses_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
     """
-    Pobiera listę kursów przypisanych do danego użytkownika (user_id).
+    Pobiera listę kursów przypisanych do danego użytkownika (user_id) wraz z user_course_id.
     """
+    # Pobranie powiązanych kursów użytkownika z tabeli user_course
     user_courses = db.query(User_course).filter(User_course.user_id == user_id).all()
-    course_ids = [uc.course_id for uc in user_courses]
-    return course_ids
+
+    if not user_courses:
+        raise HTTPException(status_code=404, detail="No courses found for the user")
+
+    # Przygotowanie listy obiektów zawierających course_id i user_course_id
+    courses = [{"course_id": uc.course_id, "user_course_id": uc.id} for uc in user_courses]
+
+    return courses
 
 
 @router.get("/course_details/{course_id}", response_model=dict)

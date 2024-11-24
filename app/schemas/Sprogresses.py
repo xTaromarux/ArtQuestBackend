@@ -4,7 +4,6 @@ from typing import Optional
 
 class ProgressesBase(BaseModel):
     stage: int
-    user_id: UUID
     user_course_id: UUID
 
     class Config:
