@@ -31,7 +31,7 @@ from app.services import (
     courses as course_service,
     views as views_service,
     progresses as progresses_service,
-    # difficulties as difficulties_service
+    comments as comments_service,
     exercises as exercises_service
 
 )
@@ -43,7 +43,7 @@ app.include_router(course_service.router, prefix="/api")
 app.include_router(exercises_service.router, prefix="/api")
 app.include_router(views_service.router, prefix="/api")
 app.include_router(progresses_service.router, prefix="/api")
-# app.include_router(picture_service.router, prefix="/api")
+app.include_router(comments_service.router, prefix="/api")
 # app.include_router(difficulties_service.router, prefix="/api")
 
 # Trasa testowa
