@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
 from uuid import UUID
+from typing import Optional
 from database import get_db
 from models.user_course import User_course
 from models.courses import Courses
@@ -131,3 +132,57 @@ def get_course_details_by_id(course_id: UUID, request: Request, db: Session = De
     }
 
     return course_details
+
+@router.put("/courses/{course_id}/edit", response_model=dict)
+def update_course(
+    course_id: UUID,
+    title: Optional[str] = Form(None),
+    short_description: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    experience: Optional[int] = Form(None),
+    points: Optional[int] = Form(None),
+    difficulty_id: Optional[UUID] = Form(None),
+    picture_id: Optional[UUID] = Form(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Edytuje informacje o kursie w tabeli courses na podstawie course_id.
+    """
+    # Pobranie istniejącego kursu
+    course = db.query(Courses).filter(Courses.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    # Aktualizacja pól tylko jeśli zostały przekazane
+    if title is not None:
+        course.title = title
+    if short_description is not None:
+        course.short_description = short_description
+    if description is not None:
+        course.description = description
+    if experience is not None:
+        course.experience = experience
+    if points is not None:
+        course.points = points
+    if difficulty_id is not None:
+        course.difficulty_id = difficulty_id
+    if picture_id is not None:
+        course.picture_id = picture_id
+
+    # Zapisanie zmian w bazie danych
+    db.commit()
+    db.refresh(course)
+
+    return {
+        "message": "Course updated successfully",
+        "course_id": str(course.id),
+        "updated_fields": {
+            "title": title,
+            "short_description": short_description,
+            "description": description,
+            "experience": experience,
+            "points": points,
+            "difficulty_id": difficulty_id,
+            "picture_id": picture_id
+        }
+    }
