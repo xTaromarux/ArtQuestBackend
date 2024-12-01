@@ -113,7 +113,7 @@ async def update_user(
 def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     """
     Usuwa wszystkie informacje dotyczące użytkownika na podstawie user_id, w tym powiązane zdjęcie,
-    posty, kursy i osiągnięcia.
+    posty, kursy, osiągnięcia i statystyki.
     """
     # Pobranie użytkownika z bazy danych
     user = db.query(Users).filter(Users.id == user_id).first()
@@ -140,12 +140,17 @@ def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     user_achievements = db.query(User_achievements).filter(User_achievements.user_id == user_id).all()
     for achievement in user_achievements:
         db.delete(achievement)
-    
+
+    # Usunięcie statystyk użytkownika
+    user_statistics = db.query(Statistics).filter(Statistics.user_id == user_id).first()
+    if user_statistics:
+        db.delete(user_statistics)
+
     # Usunięcie użytkownika
     db.delete(user)
     db.commit()
     
-    return {"message": "User, associated picture, posts, user_course entries, and user_achievements entries deleted successfully"}
+    return {"message": "User, associated picture, posts, user_course entries, user_achievements, and statistics entries deleted successfully"}
 
 @router.get("/user/{user_id}/details", response_model=dict)
 def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_db)):
