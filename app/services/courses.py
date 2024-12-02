@@ -9,7 +9,11 @@ from models.courses import Courses
 from models.pictures import Pictures
 from models.difficulties import Difficulties
 import tempfile
-import os
+from models.exercises import Exercises 
+from models.user_course import User_course 
+from models.views import Views 
+from models.views_data import Views_data 
+from models.views_pictures import Views_pictures 
 
 router = APIRouter()
 
@@ -186,3 +190,63 @@ def update_course(
             "picture_id": picture_id
         }
     }
+
+@router.delete("/courses/{course_id}/delete", response_model=dict)
+def delete_course(course_id: UUID, db: Session = Depends(get_db)):
+    """
+    Usuwa kurs oraz wszystkie powiązane dane na podstawie course_id.
+    """
+    # Pobranie kursu
+    course = db.query(Courses).filter(Courses.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    # Usunięcie powiązanych ćwiczeń
+    exercises = db.query(Exercises).filter(Exercises.course_id == course_id).all()
+    for exercise in exercises:
+        # Usunięcie widoków powiązanych z ćwiczeniem
+        views = db.query(Views).filter(Views.exercise_id == exercise.id).all()
+        for view in views:
+            # Usunięcie danych widoków
+            views_data = db.query(Views_data).filter(Views_data.view_id == view.id).all()
+            for view_data in views_data:
+                db.delete(view_data)
+
+            # Usunięcie powiązanych zdjęć widoków
+            views_pictures = db.query(Views_pictures).filter(Views_pictures.view_id == view.id).all()
+            for view_picture in views_pictures:
+                db.delete(view_picture)
+
+            db.delete(view)
+
+        # Usunięcie powiązanych zdjęć ćwiczeń
+        if exercise.picture_id:
+            picture = db.query(Pictures).filter(Pictures.id == exercise.picture_id).first()
+            if picture:
+                db.delete(picture)
+
+        db.delete(exercise)
+
+    # Usunięcie powiązanych zdjęć kursu
+    if course.picture_id:
+        course_picture = db.query(Pictures).filter(Pictures.id == course.picture_id).first()
+        if course_picture:
+            db.delete(course_picture)
+
+    # Usunięcie powiązań w tabeli user_course
+    user_courses = db.query(User_course).filter(User_course.course_id == course_id).all()
+    for user_course in user_courses:
+        db.delete(user_course)
+
+    # Usunięcie powiązanych widoków dla kursu
+    course_views = db.query(Views).filter(Views.course_id == course_id).all()
+    for view in course_views:
+        db.delete(view)
+
+    # Usunięcie kursu
+    db.delete(course)
+
+    # Zatwierdzenie zmian
+    db.commit()
+
+    return {"message": "Course and all associated data deleted successfully"}
