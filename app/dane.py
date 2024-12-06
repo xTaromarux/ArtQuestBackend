@@ -16,6 +16,8 @@ from models.views_data import Views_data
 from models.statistics import Statistics
 from models.achievements import Achievements
 from models.user_achievements import User_achievements
+from models.comments import Comments
+from models.exercise_feedback import Exercise_feedback
 
 # Function to convert images to binary
 def convert_image_to_binary(image_path):
@@ -271,6 +273,100 @@ def add_sample_data(db: Session):
         User_achievements(id=uuid.uuid4(), user_id=users[1].id, achievement_id=achievements_data[1].id)
     ]
     db.add_all(user_achievements_data)
+
+    # Add sample difficulties
+    difficulties = [
+        Difficulties(id=uuid.uuid4(), level=1, color="Green", experience=10),
+        Difficulties(id=uuid.uuid4(), level=2, color="Yellow", experience=20),
+        Difficulties(id=uuid.uuid4(), level=3, color="Red", experience=30),
+    ]
+    db.add_all(difficulties)
+    db.flush()
+
+    # Add sample courses
+    courses = [
+        Courses(
+            id=uuid.uuid4(), title="Python Basics", short_description="Intro to Python", 
+            description="Learn the basics of Python programming.", experience=100, points=50,
+            difficulty_id=difficulties[0].id, picture_id=pictures[0].id if len(pictures) > 0 else None
+        ),
+        Courses(
+            id=uuid.uuid4(), title="Data Science", short_description="Data Science with Python",
+            description="Introduction to data science concepts using Python.", experience=200, points=80,
+            difficulty_id=difficulties[1].id, picture_id=pictures[1].id if len(pictures) > 1 else None
+        ),
+        Courses(
+            id=uuid.uuid4(), title="Web Development", short_description="Full-stack Web Dev",
+            description="Learn to build full-stack applications.", experience=150, points=60,
+            difficulty_id=difficulties[2].id, picture_id=pictures[2].id if len(pictures) > 2 else None
+        ),
+    ]
+    db.add_all(courses)
+    db.flush()
+
+    # Add sample exercises
+    exercises_data = [
+        {
+            "title": "Exercise 1 - Python Basics",
+            "done": False,
+            "course_id": courses[0].id,
+            "picture_id": pictures[0].id if len(pictures) > 0 else None
+        },
+        {
+            "title": "Exercise 2 - Data Science Intro",
+            "done": True,
+            "course_id": courses[1].id,
+            "picture_id": pictures[1].id if len(pictures) > 1 else None
+        },
+        {
+            "title": "Exercise 3 - Web Dev Setup",
+            "done": False,
+            "course_id": courses[2].id,
+            "picture_id": pictures[2].id if len(pictures) > 2 else None
+        },
+    ]
+    exercises = [Exercises(id=uuid.uuid4(), **exercise_data) for exercise_data in exercises_data]
+    db.add_all(exercises)
+    db.flush()
+
+    # Add exercise feedback
+    feedback_data = [
+        Exercise_feedback(
+            id=uuid.uuid4(),
+            message="Great start, keep improving!",
+            user_id=users[0].id,
+            exercise_id=exercises[0].id,
+            picture_id=pictures[0].id if len(pictures) > 0 else None
+        ),
+        Exercise_feedback(
+            id=uuid.uuid4(),
+            message="Impressive progress!",
+            user_id=users[1].id,
+            exercise_id=exercises[1].id,
+            picture_id=pictures[1].id if len(pictures) > 1 else None
+        ),
+    ]
+    db.add_all(feedback_data)
+
+    # Add comments
+    comments_data = [
+        Comments(
+            id=uuid.uuid4(),
+            description="I love this course!",
+            reactions=10,
+            user_id=users[0].id,
+            post_id=None  # Add post_id here when posts are created
+        ),
+        Comments(
+            id=uuid.uuid4(),
+            description="Fantastic introduction.",
+            reactions=5,
+            user_id=users[1].id,
+            post_id=None  # Add post_id here when posts are created
+        ),
+    ]
+    db.add_all(comments_data)
+
 
     db.commit()
     print("Sample data added successfully.")

@@ -14,7 +14,9 @@ from models.user_course import User_course
 from models.statistics import Statistics
 from models.user_achievements import User_achievements
 from models.achievements import Achievements
-from schemas.Susers import Users as UsersSchema, UsersMinimalResponse
+from models.exercise_feedback import Exercise_feedback
+from models.comments import Comments
+from schemas.Susers import Users as UsersMinimalResponse
 
 
 router = APIRouter()
@@ -113,7 +115,7 @@ async def update_user(
 def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     """
     Usuwa wszystkie informacje dotyczące użytkownika na podstawie user_id, w tym powiązane zdjęcie,
-    posty, kursy, osiągnięcia i statystyki.
+    posty, kursy, osiągnięcia, statystyki, komentarze i exercise_feedback.
     """
     # Pobranie użytkownika z bazy danych
     user = db.query(Users).filter(Users.id == user_id).first()
@@ -146,11 +148,26 @@ def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     if user_statistics:
         db.delete(user_statistics)
 
+    # Usunięcie wszystkich powiązanych wierszy w tabeli exercise_feedback
+    user_feedbacks = db.query(Exercise_feedback).filter(Exercise_feedback.user_id == user_id).all()
+    for feedback in user_feedbacks:
+        # Usunięcie powiązanego zdjęcia, jeśli istnieje
+        if feedback.picture_id:
+            feedback_picture = db.query(Pictures).filter(Pictures.id == feedback.picture_id).first()
+            if feedback_picture:
+                db.delete(feedback_picture)
+        db.delete(feedback)
+
+    # Usunięcie wszystkich komentarzy użytkownika
+    user_comments = db.query(Comments).filter(Comments.user_id == user_id).all()
+    for comment in user_comments:
+        db.delete(comment)
+
     # Usunięcie użytkownika
     db.delete(user)
     db.commit()
     
-    return {"message": "User, associated picture, posts, user_course entries, user_achievements, and statistics entries deleted successfully"}
+    return {"message": "User, associated picture, posts, user_course entries, user_achievements, statistics, comments, and exercise_feedback entries deleted successfully"}
 
 @router.get("/user/{user_id}/details", response_model=dict)
 def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_db)):

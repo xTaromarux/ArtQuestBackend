@@ -33,7 +33,8 @@ from app.services import (
     progresses as progresses_service,
     comments as comments_service,
     exercises as exercises_service,
-    statistic as statistic_service
+    statistic as statistic_service,
+    exercise_feedback as exercise_feedback_service
 
 )
 
@@ -46,6 +47,7 @@ app.include_router(views_service.router, prefix="/api")
 app.include_router(progresses_service.router, prefix="/api")
 app.include_router(comments_service.router, prefix="/api")
 app.include_router(statistic_service.router, prefix="/api")
+app.include_router(exercise_feedback_service.router, prefix="/api")
 
 # Trasa testowa
 @app.get("/")
