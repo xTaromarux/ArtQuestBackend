@@ -6,11 +6,11 @@ from models.comments import Comments as CommentsModel
 from database import get_db
 from schemas.Scomments import Comments
 from models.posts import Posts as PostsModel
- 
+from typing import List 
 
 router = APIRouter()
 
-@router.get("/comments/{post_id}", response_model=list[Comments])
+@router.get("/comments/{post_id}", response_model=List[Comments])
 def get_comments_by_post_id(post_id: UUID, db: Session = Depends(get_db)):
     """
     Pobiera wszystkie komentarze dla danego postu na podstawie `post_id`.

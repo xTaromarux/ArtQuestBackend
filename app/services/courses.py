@@ -14,10 +14,11 @@ from models.user_course import User_course
 from models.views import Views 
 from models.views_data import Views_data 
 from models.views_pictures import Views_pictures 
+from typing import List
 
 router = APIRouter()
 
-@router.get("/courses/{user_id}", response_model=list[dict])
+@router.get("/courses/{user_id}", response_model=List[dict])
 def get_courses_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
     """
     Pobiera listę kursów przypisanych do danego użytkownika (user_id) wraz z user_course_id.
@@ -86,7 +87,7 @@ def get_course_picture(course_id: UUID, db: Session = Depends(get_db)):
     return FileResponse(temp_jpg_path, media_type="image/jpeg")
 
 
-@router.get("/all_courses_details", response_model=list[dict])
+@router.get("/all_courses_details", response_model=List[dict])
 def get_all_courses_details(request: Request, db: Session = Depends(get_db)):
     """
     Pobiera szczegóły wszystkich kursów, w tym id, title, description, poziom trudności oraz link do obrazu.

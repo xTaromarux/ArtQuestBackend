@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import sys
 import signal
+from fastapi.middleware.cors import CORSMiddleware
 
 # Dodaj katalog główny projektu do ścieżki Pythona
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -23,6 +24,14 @@ logger = logging.getLogger(__name__)
 
 # Tworzenie instancji FastAPI
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Pozwala na wszystkie pochodzenia
+    allow_credentials=True,
+    allow_methods=["*"],  # Pozwala na wszystkie metody HTTP
+    allow_headers=["*"],  # Pozwala na wszystkie nagłówki
+)
 
 # Importowanie routerów z modułów
 from app.services import (

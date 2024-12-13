@@ -1,5 +1,5 @@
-from lightglue import LightGlue, SuperPoint
-from lightglue.utils import rbd
+from app.ai_model.lightglue import LightGlue, SuperPoint
+from app.ai_model.lightglue.utils import rbd
 import torch
 import openai
 import os
