@@ -10,8 +10,7 @@ from models.users import Users
 from schemas.Sposts import PostDetailsResponse, PostsUpdate
 import tempfile
 import os
-from typing import List
-
+List
 router = APIRouter()
 
 @router.get("/post_details/{post_id}", response_model=PostDetailsResponse)
@@ -62,7 +61,7 @@ def get_post_picture(post_id: UUID, db: Session = Depends(get_db)):
 
     return FileResponse(temp_jpg_path, media_type="image/jpeg")
 
-@router.get("/posts", response_model=List[PostDetailsResponse])
+@router.get("/posts", response_model=list[PostDetailsResponse])
 def get_posts(request: Request, db: Session = Depends(get_db)):
     """
     Zwraca listę maksymalnie 50 postów, w tym opis, daty, reakcje oraz link do obrazu i informacje o użytkowniku.

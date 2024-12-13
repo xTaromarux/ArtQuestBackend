@@ -8,10 +8,11 @@ from models.exercises import Exercises
 from models.pictures import Pictures
 import tempfile
 import os
+from typing import List
 
 router = APIRouter()
 
-@router.get("/course_exercises/{course_id}", response_model=list[dict])
+@router.get("/course_exercises/{course_id}", response_model=List[dict])
 def get_course_exercises(course_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
     Pobiera listę ćwiczeń dla danego kursu (course_id), w tym id, title, done oraz link do obrazu.
