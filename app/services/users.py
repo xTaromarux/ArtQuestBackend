@@ -21,11 +21,24 @@ from schemas.Susers import Users as UsersMinimalResponse
 
 router = APIRouter()
 
-def convert_image_to_binary(image_file: UploadFile) -> bytes:
+def convert_image_to_binary(upload_file: UploadFile) -> bytes:
     """
-    Konwertuje plik obrazu na dane binarne.
+    Konwertuje przesłany plik obrazu na dane binarne.
     """
-    return image_file.file.read()
+    try:
+        return upload_file.file.read()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
+
+
+def convert_image_to_binary(upload_file: UploadFile) -> bytes:
+    """
+    Konwertuje przesłany plik obrazu na dane binarne.
+    """
+    try:
+        return upload_file.file.read()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
 
 @router.post("/user/create", response_model=UsersMinimalResponse)
 async def create_user(
@@ -39,7 +52,7 @@ async def create_user(
     """
     Tworzy nowego użytkownika, ustawiając `created_date` w stałej strefie czasowej UTC+1.
     """
-    # Ustawienie czasu na UTC+1 bez zmiany na czas letni
+    # Ustawienie czasu na UTC+1
     utc_plus_one = timezone(timedelta(hours=1))
     current_time = datetime.now(utc_plus_one)
 
@@ -50,7 +63,7 @@ async def create_user(
         mail=mail,
         user_name=user_name,
         group=group,
-        created_date=current_time  # Ustawienie daty utworzenia w UTC+1
+        created_date=current_time
     )
 
     # Jeśli przekazano obraz, zapisz go w tabeli pictures
@@ -64,54 +77,49 @@ async def create_user(
     db.commit()
     db.refresh(user)
 
-    return UsersMinimalResponse(login=user.login, mail=user.mail, user_name=user.user_name)
+    return UsersMinimalResponse(
+        id=user.id,
+        login=user.login,
+        mail=user.mail,
+        user_name=user.user_name
+    )
 
-@router.put("/user/{user_id}/edit", response_model=UsersMinimalResponse)
+@router.put("/user/update/{user_id}", response_model=UsersMinimalResponse)
 async def update_user(
     user_id: UUID,
     login: Optional[str] = None,
     mail: Optional[str] = None,
     user_name: Optional[str] = None,
     group: Optional[str] = None,
-    picture: Optional[UploadFile] = File(None),
+    picture: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    """
-    Edytuje login, mail, user_name oraz grupę użytkownika, a także zapisuje nowy obraz w formacie blob w tabeli pictures.
-    """
-    # Pobranie użytkownika z bazy danych
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Aktualizacja danych użytkownika tylko dla pól, które zostały przekazane
-    if login is not None:
+    # Aktualizacja pól użytkownika
+    if login:
         user.login = login
-    if mail is not None:
+    if mail:
         user.mail = mail
-    if user_name is not None:
+    if user_name:
         user.user_name = user_name
-    if group is not None:
+    if group:
         user.group = group
-
-    # Jeśli przekazano obraz, zaktualizuj zdjęcie profilowe
     if picture:
-        if user.picture_id:
-            user_picture = db.query(Pictures).filter(Pictures.id == user.picture_id).first()
-        else:
-            user_picture = Pictures(id=uuid4())
-            db.add(user_picture)
-            db.flush()  # Upewnij się, że nowy obraz ma ID
-            user.picture_id = user_picture.id
-
-        user_picture.picture = convert_image_to_binary(picture)
+        user_picture = Pictures(id=uuid4(), picture=picture.file.read())
+        db.add(user_picture)
+        db.flush()
+        user.picture_id = user_picture.id
 
     db.commit()
     db.refresh(user)
 
-    return UsersMinimalResponse(login=user.login, mail=user.mail, user_name=user.user_name)
+    return UsersMinimalResponse.from_orm(user)
 
 @router.delete("/user/{user_id}", response_model=dict)
+
 def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     """
     Usuwa wszystkie informacje dotyczące użytkownika na podstawie user_id, w tym powiązane zdjęcie,

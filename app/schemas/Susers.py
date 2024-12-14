@@ -8,7 +8,11 @@ class UsersBase(BaseModel):
     user_name: str
     group: Optional[str] = None
 
+from uuid import UUID
+from pydantic import BaseModel
+
 class UsersMinimalResponse(BaseModel):
+    id: UUID
     login: str
     mail: str
     user_name: str
