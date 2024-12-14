@@ -75,6 +75,7 @@ def get_feedback_details(exercise_id: UUID, user_id: UUID, request: Request, db:
     """
     Pobiera szczegóły feedbacku, w tym wiadomość i link do obrazu powiązanego z feedbackiem.
     """
+    # Pobierz feedback
     feedback = (
         db.query(Exercise_feedback)
         .filter(
@@ -84,13 +85,19 @@ def get_feedback_details(exercise_id: UUID, user_id: UUID, request: Request, db:
         .first()
     )
 
+    # Jeśli feedback nie istnieje
     if not feedback:
-        raise HTTPException(status_code=404, detail="Feedback not found")
+        raise HTTPException(status_code=404, detail=f"Feedback not found for exercise_id={exercise_id} and user_id={user_id}")
 
+    # Jeśli feedback nie ma powiązanego obrazu
     if not feedback.picture_id:
-        raise HTTPException(status_code=404, detail="Picture not associated with this feedback")
+        raise HTTPException(status_code=404, detail=f"No picture associated with feedback id={feedback.id}")
 
-    picture_url = str(request.url_for("get_feedback_picture", picture_id=feedback.picture_id))
+    # Sprawdź, czy istnieje endpoint dla obrazu
+    try:
+        picture_url = str(request.url_for("get_feedback_picture", picture_id=feedback.picture_id))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating picture URL: {str(e)}")
 
     return {
         "message": feedback.message,
