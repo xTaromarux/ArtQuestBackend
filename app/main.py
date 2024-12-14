@@ -43,7 +43,8 @@ from app.services import (
     comments as comments_service,
     exercises as exercises_service,
     statistic as statistic_service,
-    exercise_feedback as exercise_feedback_service
+    exercise_feedback as exercise_feedback_service,
+    pictures as pictures_service
 
 )
 
@@ -57,7 +58,7 @@ app.include_router(progresses_service.router, prefix="/api")
 app.include_router(comments_service.router, prefix="/api")
 app.include_router(statistic_service.router, prefix="/api")
 app.include_router(exercise_feedback_service.router, prefix="/api")
-
+app.include_router(pictures_service.router, prefix="/api")
 # Trasa testowa
 @app.get("/")
 def read_root():

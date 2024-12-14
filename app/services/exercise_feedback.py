@@ -105,6 +105,7 @@ def get_feedback_details(exercise_id: UUID, user_id: UUID, request: Request, db:
     }
 
 
+
 @router.get("/feedback_picture/{picture_id}", response_class=FileResponse)
 def get_feedback_picture(picture_id: UUID, db: Session = Depends(get_db)):
     """
