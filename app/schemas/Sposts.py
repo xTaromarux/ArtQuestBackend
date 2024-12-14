@@ -18,6 +18,7 @@ class PostsUpdate(BaseModel):
 
 
 class PostDetailsResponse(BaseModel):
+    id: UUID
     description: Optional[str]
     date_added: datetime
     date_updated: datetime
