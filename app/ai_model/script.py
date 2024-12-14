@@ -115,7 +115,7 @@ def generate_message(percentage_common_points, chatgpt_enabled):
     # Użycie ChatGPT (opcjonalnie)
     try:
         load_api_key()
-        prompt = f"The result shows a matching percentage of {percentage_common_points}%. Please provide a motivational message."
+        prompt = f"The result shows a matching percentage of {percentage_common_points}%. Please provide a motivational message. (below 5%. Please provide a motivational message, such as better luck next time between 5% and 10%. Please provide a message saying you're doing well, between 10% and 15%. Please provide an encouraging message like 'super wow'., 15% or more. Please provide a message saying 'perfect'."
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[

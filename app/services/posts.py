@@ -32,6 +32,7 @@ def get_post_details(post_id: UUID, request: Request, db: Session = Depends(get_
         picture_url = str(request.url_for("get_post_picture", post_id=post_id))
 
     response = {
+        "id": post.id,
         "description": post.description,
         "date_added": post.date_added,
         "date_updated": post.date_updated,
@@ -80,6 +81,7 @@ def get_posts(request: Request, db: Session = Depends(get_db)):
             picture_url = str(request.url_for("get_post_picture", post_id=post.id))
 
         response.append({
+            "id": post.id,
             "description": post.description,
             "date_added": post.date_added,
             "date_updated": post.date_updated,
@@ -152,6 +154,7 @@ def update_post_description(
 
     # Przygotowanie odpowiedzi
     response = PostDetailsResponse(
+        id=post.id,
         description=post.description,
         date_added=post.date_added,
         date_updated=post.date_updated,
