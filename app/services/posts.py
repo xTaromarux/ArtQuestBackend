@@ -14,35 +14,25 @@ from typing import List
 
 router = APIRouter()
 
-@router.get("/post_details/{post_id}", response_model=PostDetailsResponse)
-def get_post_details(post_id: UUID, request: Request, db: Session = Depends(get_db)):
+@router.get("/user_picture/{user_id}", response_class=FileResponse)
+def get_user_picture(user_id: UUID, db: Session = Depends(get_db)):
     """
-    Pobiera szczegóły posta, w tym opis, daty, reakcje oraz link do obrazu i informacje o użytkowniku.
+    Zwraca obraz powiązany z użytkownikiem w formacie JPG na podstawie user_id.
     """
-    post = db.query(Posts).filter(Posts.id == post_id).first()
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user or not user.picture_id:
+        raise HTTPException(status_code=404, detail="User or picture not found")
 
-    user = db.query(Users).filter(Users.id == post.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    picture = db.query(Pictures).filter(Pictures.id == user.picture_id).first()
+    if not picture or not picture.picture:
+        raise HTTPException(status_code=404, detail="Picture not found")
 
-    picture_url = None
-    if post.picture_id:
-        picture_url = str(request.url_for("get_post_picture", post_id=post_id))
+    # Zapisanie obrazu tymczasowo w formacie JPG
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_jpg:
+        temp_jpg.write(picture.picture)
+        temp_jpg_path = temp_jpg.name
 
-    response = {
-        "id": post.id,
-        "description": post.description,
-        "date_added": post.date_added,
-        "date_updated": post.date_updated,
-        "reactions": post.reactions,
-        "picture_url": picture_url,
-        "user_name": user.user_name,
-        "login": user.login
-    }
-    
-    return response
+    return FileResponse(temp_jpg_path, media_type="image/jpeg")
 
 @router.get("/post_picture/{post_id}", response_class=FileResponse)
 def get_post_picture(post_id: UUID, db: Session = Depends(get_db)):
@@ -63,6 +53,49 @@ def get_post_picture(post_id: UUID, db: Session = Depends(get_db)):
 
     return FileResponse(temp_jpg_path, media_type="image/jpeg")
 
+@router.get("/post_details/{post_id}", response_model=PostDetailsResponse)
+def get_post_details(post_id: UUID, request: Request, db: Session = Depends(get_db)):
+    """
+    Pobiera szczegóły posta, w tym opis, daty, reakcje, link do obrazu posta oraz link do obrazu użytkownika.
+    """
+    # Pobranie posta
+    post = db.query(Posts).filter(Posts.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    # Pobranie użytkownika
+    user = db.query(Users).filter(Users.id == post.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Generowanie linku do obrazu posta
+    picture_url = None
+    if post.picture_id:
+        picture_url = str(request.url_for("get_post_picture", post_id=post_id))
+
+    # Generowanie linku do obrazu użytkownika
+    user_picture_url = None
+    if user.picture_id:
+        user_picture_url = str(request.url_for("get_user_picture", user_id=user.id))
+    print(f"user.picture_id: {user.picture_id}, user_picture_url: {user_picture_url}")  # Debugowanie
+
+    # Przygotowanie odpowiedzi
+    response = {
+        "id": post.id,
+        "description": post.description,
+        "date_added": post.date_added,
+        "date_updated": post.date_updated,
+        "reactions": post.reactions,
+        "picture_url": picture_url,
+        "user_name": user.user_name,
+        "login": user.login,
+        "user_picture_url": user_picture_url  # Dodany link do zdjęcia użytkownika
+    }
+
+    print(response)  # Debugowanie odpowiedzi
+    return response
+
+
 @router.get("/posts", response_model=List[PostDetailsResponse])
 def get_posts(request: Request, db: Session = Depends(get_db)):
     """
@@ -72,26 +105,38 @@ def get_posts(request: Request, db: Session = Depends(get_db)):
 
     response = []
     for post in posts:
+        # Pobranie użytkownika powiązanego z postem
         user = db.query(Users).filter(Users.id == post.user_id).first()
         if not user:
             continue
 
+        # Generowanie URL do obrazu posta
         picture_url = None
         if post.picture_id:
             picture_url = str(request.url_for("get_post_picture", post_id=post.id))
 
+        # Generowanie URL do obrazu użytkownika
+        user_picture_url = None
+        if user.picture_id:
+            user_picture_url = str(request.url_for("get_user_picture", user_id=user.id))  # Poprawiono tutaj!
+
+        # Przygotowanie odpowiedzi
         response.append({
             "id": post.id,
             "description": post.description,
             "date_added": post.date_added,
             "date_updated": post.date_updated,
             "reactions": post.reactions,
-            "picture_url": picture_url,
+            "picture_url": picture_url,  # Link do obrazu posta
+            "user_picture_url": user_picture_url, # Link do obrazu użytkownika
             "user_name": user.user_name,
             "login": user.login
+
         })
-    
+    print(response)
     return response
+
+
 
 @router.post("/add_post", response_model=UUID)
 async def add_post(
@@ -186,3 +231,4 @@ def delete_post(post_id: UUID, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": "Post and associated picture deleted successfully"}
+

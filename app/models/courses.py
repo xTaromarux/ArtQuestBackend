@@ -9,6 +9,7 @@ class Courses(_database.Base):
     title = _sql.Column(_sql.String, nullable=False)
     short_description = _sql.Column(_sql.String, nullable=False)
     description = _sql.Column(_sql.String, nullable=False)
+    #long_description = _sql.Column(_sql.String, nullable=False)
     experience = _sql.Column(_sql.Integer, nullable=False)
     points = _sql.Column(_sql.Integer, nullable=False)
     difficulty_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('difficulties.id'))

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta, timezone
@@ -20,16 +21,6 @@ from schemas.Susers import Users as UsersMinimalResponse
 
 
 router = APIRouter()
-
-def convert_image_to_binary(upload_file: UploadFile) -> bytes:
-    """
-    Konwertuje przesłany plik obrazu na dane binarne.
-    """
-    try:
-        return upload_file.file.read()
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
-
 
 def convert_image_to_binary(upload_file: UploadFile) -> bytes:
     """
@@ -180,7 +171,7 @@ def delete_user(user_id: UUID, db: Session = Depends(get_db)):
 @router.get("/user/{user_id}/details", response_model=dict)
 def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
-    Pobiera szczegóły użytkownika, w tym statystyki, osiągnięcia i obrazy.
+    Pobiera szczegóły użytkownika, w tym statystyki, osiągnięcia i link do obrazu powiązanego z użytkownikiem.
     """
     # Pobranie użytkownika
     user = db.query(Users).filter(Users.id == user_id).first()
@@ -204,7 +195,7 @@ def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_
     achievements = []
     for achievement in user_achievements:
         picture_url = (
-            str(request.url_for("get_view_picture", picture_id=achievement.picture_id))
+            str(request.url_for("get_picture_by_id", picture_id=achievement.picture_id))
             if achievement.picture_id else None
         )
         achievements.append({
@@ -212,13 +203,19 @@ def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_
             "picture_url": picture_url
         })
 
+    # Pobranie linku do obrazu użytkownika, jeśli istnieje
+    picture_url = None
+    if user.picture_id:
+        picture_url = str(request.url_for("get_picture_by_id", picture_id=user.picture_id))
+
     # Przygotowanie odpowiedzi
     response = {
         "user": {
             "login": user.login,
             "mail": user.mail,
             "user_name": user.user_name,
-            "created_date": user.created_date
+            "created_date": user.created_date,
+            "picture_url": picture_url
         },
         "statistics": {
             "experience": statistics.experience,
@@ -231,3 +228,23 @@ def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_
     }
     
     return response
+
+
+@router.get("/picture/{picture_id}", response_class=FileResponse, name="get_picture_by_id")
+def get_picture_by_id(picture_id: UUID, db: Session = Depends(get_db)):
+    """
+    Pobiera obraz z tabeli pictures jako plik JPG na podstawie picture_id.
+    """
+    # Pobranie obrazu z bazy danych
+    picture = db.query(Pictures).filter(Pictures.id == picture_id).first()
+    if not picture or not picture.picture:
+        raise HTTPException(status_code=404, detail="Picture not found")
+    
+    # Zapis obrazu tymczasowo jako plik JPG
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+        temp_file.write(picture.picture)
+        temp_file_path = temp_file.name
+
+    # Zwrócenie pliku obrazu jako odpowiedź
+    return FileResponse(temp_file_path, media_type="image/jpeg")

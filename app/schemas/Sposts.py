@@ -19,13 +19,14 @@ class PostsUpdate(BaseModel):
 
 class PostDetailsResponse(BaseModel):
     id: UUID
-    description: Optional[str]
+    description: str
     date_added: datetime
     date_updated: datetime
-    reactions: Optional[int]
-    picture_url: Optional[str]  # Link do endpointu zwracającego obraz
+    reactions: int
+    picture_url: Optional[str] = None
     user_name: str
     login: str
+    user_picture_url: Optional[str] = None 
 
 class Posts(PostsBase):
     id: UUID
