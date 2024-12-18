@@ -22,3 +22,17 @@ class Comments(CommentsBase):
 
     class Config:
         from_attributes = True
+        
+class CommentResponse(BaseModel):
+    id: UUID
+    description: str
+    reactions: int
+    date_added: datetime
+    date_updated: datetime
+    user_id: UUID
+    user_name: str
+    login: str
+    avatar_url: Optional[str] = None
+
+    class Config:
+        orm_mode = True
