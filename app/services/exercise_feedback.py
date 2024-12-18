@@ -26,6 +26,7 @@ def generate_feedback(
 ):
     """
     Endpoint, który generuje feedback na podstawie zdjęcia przesłanego przez użytkownika i zdjęcia powiązanego z exercise_id.
+    Jeśli feedback już istnieje dla danego user_id i exercise_id, zostanie zaktualizowany.
     """
 
     # Pobierz powiązane zdjęcie z tabeli Exercises
@@ -41,13 +42,47 @@ def generate_feedback(
     if not exercise_picture:
         raise HTTPException(status_code=404, detail="Exercise picture not found")
 
-    # Wczytaj i zapisz przesłane zdjęcie użytkownika do bazy danych jako BLOB
+    # Sprawdź, czy istnieje feedback dla user_id i exercise_id
+    feedback_entry = db.query(Exercise_feedback).filter(
+        Exercise_feedback.user_id == user_id,
+        Exercise_feedback.exercise_id == exercise_id
+    ).first()
+
+    # Jeśli istnieje feedback, zaktualizuj go
+    if feedback_entry:
+        feedback_picture = db.query(Pictures).filter(Pictures.id == feedback_entry.picture_id).first()
+        if feedback_picture:
+            # Zaktualizuj istniejące zdjęcie
+            feedback_picture.picture = feedback_image.file.read()  # Przechowujemy jako blob w bazie danych
+        else:
+            # Jeśli zdjęcie nie istnieje, utwórz nowe
+            feedback_picture = Pictures(
+                id=uuid4(),
+                picture=feedback_image.file.read()  # Przechowujemy jako blob w bazie danych
+            )
+            db.add(feedback_picture)
+            db.flush()
+            feedback_entry.picture_id = feedback_picture.id  # Powiąż nowe zdjęcie z feedbackiem
+
+        # Przetwarzaj obrazy jako dane binarne
+        try:
+            message = process_images(exercise_picture.picture, feedback_picture.picture)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error processing images: {str(e)}")
+
+        # Zaktualizuj wiadomość w istniejącym feedbacku
+        feedback_entry.message = message
+        db.commit()
+
+        return {"message": "Feedback updated successfully", "feedback_id": str(feedback_entry.id)}
+
+    # Jeśli feedback nie istnieje, utwórz nowy
     feedback_picture = Pictures(
         id=uuid4(),
         picture=feedback_image.file.read()  # Przechowujemy jako blob w bazie danych
     )
     db.add(feedback_picture)
-    db.commit()
+    db.flush()  # Upewnij się, że nowe ID jest dostępne
 
     # Przetwarzaj obrazy jako dane binarne
     try:
@@ -55,7 +90,6 @@ def generate_feedback(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing images: {str(e)}")
 
-    # Zapisz wynik w tabeli Exercise_feedback
     feedback_entry = Exercise_feedback(
         id=uuid4(),
         message=message,
@@ -66,9 +100,7 @@ def generate_feedback(
     db.add(feedback_entry)
     db.commit()
 
-    return {"message": message, "feedback_id": str(feedback_entry.id)}
-
-
+    return {"message": "Feedback created successfully", "feedback_id": str(feedback_entry.id)}
 
 @router.get("/feedback_details/{exercise_id}/{user_id}", response_model=dict)
 def get_feedback_details(exercise_id: UUID, user_id: UUID, request: Request, db: Session = Depends(get_db)):
