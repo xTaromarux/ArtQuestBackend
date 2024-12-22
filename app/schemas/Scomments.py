@@ -22,7 +22,7 @@ class Comments(CommentsBase):
 
     class Config:
         from_attributes = True
-        
+
 class CommentResponse(BaseModel):
     id: UUID
     description: str
@@ -35,4 +35,4 @@ class CommentResponse(BaseModel):
     avatar_url: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
