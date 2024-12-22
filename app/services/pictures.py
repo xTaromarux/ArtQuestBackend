@@ -9,11 +9,11 @@ router = APIRouter()
 @router.post("/pictures/upload", response_model=dict)
 def upload_picture(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """
-    Endpoint do przesyłania zdjęć w formacie JPG i zapisywania ich jako blob w tabeli pictures.
+    Endpoint do przesyłania zdjęć w formacie JPG i PNG oraz zapisywania ich jako blob w tabeli pictures.
     """
     # Sprawdzenie, czy plik ma odpowiedni format
-    if file.content_type != "image/jpeg":
-        raise HTTPException(status_code=400, detail="Only JPG files are supported.")
+    if file.content_type not in ["image/jpeg", "image/png"]:
+        raise HTTPException(status_code=400, detail="Only JPG and PNG files are supported.")
     
     # Odczytanie pliku i zapisanie jako blob
     try:
