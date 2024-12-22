@@ -9,11 +9,12 @@ class Courses(_database.Base):
     title = _sql.Column(_sql.String, nullable=False)
     short_description = _sql.Column(_sql.String, nullable=False)
     description = _sql.Column(_sql.String, nullable=False)
-    #long_description = _sql.Column(_sql.String, nullable=False)
+    long_description = _sql.Column(_sql.String, nullable=True)
     experience = _sql.Column(_sql.Integer, nullable=False)
     points = _sql.Column(_sql.Integer, nullable=False)
     difficulty_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('difficulties.id'))
     picture_id = _sql.Column(_sql.UUID(as_uuid=True), _sql.ForeignKey('pictures.id'))
+
 
     difficulties = relationship('Difficulties', back_populates='courses')
     pictures = relationship('Pictures', back_populates='courses')
@@ -22,4 +23,4 @@ class Courses(_database.Base):
     views = relationship('Views', back_populates='courses')
 
     def __repr__(self):
-        return f"<Course(id={self.id}, title='{self.title}', short_description='{self.short_description}', description='{self.description}', experience='{self.experience}', points='{self.points}', difficulty_id='{self.difficulty_id}', picture_id='{self.picture_id}')>"
+        return f"<Course(id={self.id}, title='{self.title}', short_description='{self.short_description}', description='{self.description}',long_description='{self.long_description}', experience='{self.experience}', points='{self.points}', difficulty_id='{self.difficulty_id}', picture_id='{self.picture_id}')>"

@@ -14,6 +14,7 @@ from models.user_course import User_course
 from models.views import Views 
 from models.views_data import Views_data 
 from models.views_pictures import Views_pictures 
+from models.progresses import Progresses
 from typing import List
 
 router = APIRouter()
@@ -21,7 +22,7 @@ router = APIRouter()
 @router.get("/courses/{user_id}", response_model=List[dict])
 def get_courses_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
     """
-    Pobiera listę kursów przypisanych do danego użytkownika (user_id) wraz z user_course_id.
+    Pobiera listę kursów przypisanych do danego użytkownika (user_id) wraz z user_course_id i wartością stage z tabeli progresses.
     """
     # Pobranie powiązanych kursów użytkownika z tabeli user_course
     user_courses = db.query(User_course).filter(User_course.user_id == user_id).all()
@@ -29,10 +30,35 @@ def get_courses_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
     if not user_courses:
         raise HTTPException(status_code=404, detail="No courses found for the user")
 
-    # Przygotowanie listy obiektów zawierających course_id i user_course_id
-    courses = [{"course_id": uc.course_id, "user_course_id": uc.id} for uc in user_courses]
+    # Przygotowanie listy obiektów zawierających szczegóły kursu i wartość stage
+    courses = []
+    for uc in user_courses:
+        # Pobranie kursu
+        course = db.query(Courses).filter(Courses.id == uc.course_id).first()
+        if not course:
+            continue
+
+        # Pobranie etapu (stage) z tabeli progresses
+        progress = db.query(Progresses).filter(Progresses.user_course_id == uc.id).first()
+        stage = progress.stage if progress else None
+
+        # Dodanie szczegółów kursu do odpowiedzi
+        courses.append({
+            "course_id": course.id,
+            "title": course.title,
+            "short_description": course.short_description,
+            "description": course.description,
+            "long_description": course.long_description,
+            "experience": course.experience,
+            "points": course.points,
+            "difficulty_id": course.difficulty_id,
+            "picture_id": course.picture_id,
+            "user_course_id": uc.id,
+            "stage": stage  # Dodana wartość stage
+        })
 
     return courses
+
 
 
 @router.get("/course_details/{course_id}", response_model=dict)
@@ -54,7 +80,9 @@ def get_course_details(course_id: UUID, request: Request, db: Session = Depends(
         "course": {
             "id": course.id,
             "title": course.title,
-            "description": course.description
+            "description": course.description,
+            "short_desscription": course.short_description,
+            "long_description": course.long_description
         },
         "difficulty": {
             "level": difficulty.level,
@@ -102,41 +130,25 @@ def get_all_courses_details(request: Request, db: Session = Depends(get_db)):
         picture_url = str(request.url_for("get_course_picture", course_id=course.id)) if course.picture_id else None
 
         course_details = {
+            
+        "course": {
             "id": course.id,
             "title": course.title,
             "description": course.description,
-            "difficulty_level": difficulty.level,
-            "picture_url": picture_url
+            "short_desscription": course.short_description,
+            "long_description": course.long_description
+        },
+        "difficulty": {
+            "level": difficulty.level,
+            "color": difficulty.color,
+            "experience": difficulty.experience
+        },
+        "picture_url": picture_url
         }
         response.append(course_details)
 
     return response
 
-
-@router.get("/course_details_by_id/{course_id}", response_model=dict)
-def get_course_details_by_id(course_id: UUID, request: Request, db: Session = Depends(get_db)):
-    """
-    Pobiera szczegóły pojedynczego kursu na podstawie course_id, w tym id, title, description, poziom trudności oraz link do obrazu.
-    """
-    course = db.query(Courses).filter(Courses.id == course_id).first()
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
-
-    difficulty = db.query(Difficulties).filter(Difficulties.id == course.difficulty_id).first()
-    if not difficulty:
-        raise HTTPException(status_code=404, detail="Difficulty not found")
-
-    picture_url = str(request.url_for("get_course_picture", course_id=course.id)) if course.picture_id else None
-
-    course_details = {
-        "id": course.id,
-        "title": course.title,
-        "description": course.description,
-        "difficulty_level": difficulty.level,
-        "picture_url": picture_url
-    }
-
-    return course_details
 
 @router.put("/courses/{course_id}/edit", response_model=dict)
 def update_course(
