@@ -32,6 +32,7 @@ def get_course_exercises(course_id: UUID, request: Request, db: Session = Depend
             "id": exercise.id,
             "title": exercise.title,
             "done": exercise.done,
+            "position": exercise.position,
             "picture_url": picture_url
         }
         response.append(exercise_details)

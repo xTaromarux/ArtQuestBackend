@@ -284,21 +284,40 @@ def add_sample_data(db: Session):
     db.flush()
 
     # Add sample courses
+ # Add sample courses
     courses = [
         Courses(
-            id=uuid.uuid4(), title="Python Basics", short_description="Intro to Python", 
-            description="Learn the basics of Python programming.", experience=100, points=50,
-            difficulty_id=difficulties[0].id, picture_id=pictures[0].id if len(pictures) > 0 else None
+            id=uuid.uuid4(), 
+            title="Python Basics", 
+            short_description="Intro to Python", 
+            description="Learn the basics of Python programming.", 
+            long_description="This course covers fundamental concepts of Python programming such as variables, loops, functions, and object-oriented programming. By the end of the course, you'll be able to write basic Python scripts and understand core programming principles.",
+            experience=100, 
+            points=50,
+            difficulty_id=difficulties[0].id, 
+            picture_id=pictures[0].id if len(pictures) > 0 else None
         ),
         Courses(
-            id=uuid.uuid4(), title="Data Science", short_description="Data Science with Python",
-            description="Introduction to data science concepts using Python.", experience=200, points=80,
-            difficulty_id=difficulties[1].id, picture_id=pictures[1].id if len(pictures) > 1 else None
+            id=uuid.uuid4(), 
+            title="Data Science", 
+            short_description="Data Science with Python", 
+            description="Introduction to data science concepts using Python.", 
+            long_description="Dive into the world of data science with this introductory course. Learn how to manipulate data using libraries like Pandas, perform exploratory data analysis, and visualize data with Matplotlib and Seaborn.",
+            experience=200, 
+            points=80,
+            difficulty_id=difficulties[1].id, 
+            picture_id=pictures[1].id if len(pictures) > 1 else None
         ),
         Courses(
-            id=uuid.uuid4(), title="Web Development", short_description="Full-stack Web Dev",
-            description="Learn to build full-stack applications.", experience=150, points=60,
-            difficulty_id=difficulties[2].id, picture_id=pictures[2].id if len(pictures) > 2 else None
+            id=uuid.uuid4(), 
+            title="Web Development", 
+            short_description="Full-stack Web Dev", 
+            description="Learn to build full-stack applications.", 
+            long_description="This comprehensive course will teach you how to develop full-stack web applications. You'll learn frontend development with HTML, CSS, and JavaScript, as well as backend development with frameworks like Flask or Django.",
+            experience=150, 
+            points=60,
+            difficulty_id=difficulties[2].id, 
+            picture_id=pictures[2].id if len(pictures) > 2 else None
         ),
     ]
     db.add_all(courses)
@@ -309,18 +328,21 @@ def add_sample_data(db: Session):
         {
             "title": "Exercise 1 - Python Basics",
             "done": False,
+            "position": 15,
             "course_id": courses[0].id,
             "picture_id": pictures[0].id if len(pictures) > 0 else None
         },
         {
             "title": "Exercise 2 - Data Science Intro",
             "done": True,
+            "position": 52,
             "course_id": courses[1].id,
             "picture_id": pictures[1].id if len(pictures) > 1 else None
         },
         {
             "title": "Exercise 3 - Web Dev Setup",
             "done": False,
+            "position": 72,
             "course_id": courses[2].id,
             "picture_id": pictures[2].id if len(pictures) > 2 else None
         },
