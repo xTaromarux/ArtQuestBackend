@@ -8,22 +8,22 @@ from models.pictures import Pictures
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import configure_mappers
 
-# Bezpośrednie usunięcie zależnych tabel `pictures` i `courses` przy użyciu CASCADE
+# Directly delete dependent `pictures` and `courses` tables using CASCADE
 with engine.connect() as conn:
     conn.execute(text("DROP TABLE IF EXISTS pictures CASCADE"))
     conn.execute(text("DROP TABLE IF EXISTS courses CASCADE"))
 
-# Odświeżenie metadanych bazy po usunięciu tabel
+# Refresh database metadata after deleting tables
 Base.metadata.reflect(bind=engine)
 
-# Próba ponownego usunięcia pozostałych tabel, aby upewnić się, że baza jest wyczyszczona
+# Attempt to delete the remaining tables again to make sure the database is cleared
 Base.metadata.drop_all(bind=engine, checkfirst=True)
-print("Tabele zostały usunięte.")
+print("The tables have been removed.")
 
-# Debugowanie relacji w modelach, aby potwierdzić ich prawidłowość
+# Debugging relationships in models to confirm their correctness
 for cls in [Courses, Progresses, Users, Difficulties]:
     print(f"{cls.__name__} relationships: {inspect(cls).relationships.keys()}")
 
-# Tworzenie tabel w bazie danych
+# Creating tables in the database
 Base.metadata.create_all(bind=engine)
-print("Tabele zostały utworzone.")
+print("The tables have been created.")

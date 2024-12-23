@@ -3,21 +3,8 @@ import os
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from database import engine, get_db
-from models.users import Users
-from models.courses import Courses
-from models.pictures import Pictures
-from models.difficulties import Difficulties
-from models.user_course import User_course
-from models.posts import Posts
-from models.exercises import Exercises
-from models.views import Views
-from models.views_pictures import Views_pictures
-from models.views_data import Views_data
-from models.statistics import Statistics
-from models.achievements import Achievements
-from models.user_achievements import User_achievements
-from models.comments import Comments
-from models.exercise_feedback import Exercise_feedback
+from models import Users, Courses, Pictures, Difficulties, User_course, Posts, Exercise_feedback
+from models import Exercises, Views, Views_pictures, Views_data, Statistics, Achievements, User_achievements, Comments
 
 # Function to convert images to binary
 def convert_image_to_binary(image_path):
