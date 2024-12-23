@@ -1,26 +1,27 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 from uuid import uuid4
-from models import Pictures  # Upewnij się, że model Pictures jest poprawnie zaimportowany
 from database import get_db
+from models import Pictures  
+
 
 router = APIRouter()
 
 @router.post("/pictures/upload", response_model=dict)
 def upload_picture(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """
-    Endpoint do przesyłania zdjęć w formacie JPG i PNG oraz zapisywania ich jako blob w tabeli pictures.
+    Endpoint to upload images in JPG and PNG format and save them as a blob in the pictures table.
     """
-    # Sprawdzenie, czy plik ma odpowiedni format
+    # Check that the file is in the correct format
     if file.content_type not in ["image/jpeg", "image/png"]:
         raise HTTPException(status_code=400, detail="Only JPG and PNG files are supported.")
     
-    # Odczytanie pliku i zapisanie jako blob
+
     try:
-        picture_blob = file.file.read()  # Odczyt danych binarnych z pliku
+        picture_blob = file.file.read() 
         picture_entry = Pictures(id=uuid4(), picture=picture_blob)
         
-        # Dodanie zdjęcia do bazy danych
+
         db.add(picture_entry)
         db.commit()
         db.refresh(picture_entry)

@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 from datetime import datetime
 from typing import Optional
-from models.statistics import Statistics as StatisticsModel
-from schemas.Sstatistics import StatisticsCreate, Statistics
+from models import Statistics 
+from schemas.Sstatistics import Statistics
 from database import get_db
 
 router = APIRouter()
@@ -20,15 +20,13 @@ def create_statistics(
     db: Session = Depends(get_db)
 ):
     """
-    Tworzy nowy wpis w tabeli statistics na podstawie podanych danych.
+    Creates a new entry in the statistics table based on the data provided.
     """
-    # Sprawdzenie, czy statystyki dla user_id już istnieją
-    existing_statistics = db.query(StatisticsModel).filter(StatisticsModel.user_id == user_id).first()
+    existing_statistics = db.query(Statistics).filter(Statistics.user_id == user_id).first()
     if existing_statistics:
         raise HTTPException(status_code=400, detail="Statistics for this user already exist")
 
-    # Tworzenie nowego wpisu
-    new_statistics = StatisticsModel(
+    new_statistics = Statistics(
         id=uuid4(),
         experience=experience,
         level=level,
@@ -56,14 +54,12 @@ def update_statistics(
     db: Session = Depends(get_db)
 ):
     """
-    Edytuje istniejący wpis w tabeli statistics na podstawie user_id.
+    Edits an existing entry in the statistics table based on user_id.
     """
-    # Pobranie istniejącego wpisu
-    statistics = db.query(StatisticsModel).filter(StatisticsModel.user_id == user_id).first()
+    statistics = db.query(Statistics).filter(Statistics.user_id == user_id).first()
     if not statistics:
         raise HTTPException(status_code=404, detail="Statistics for this user not found")
 
-    # Aktualizacja pól tylko jeśli zostały przekazane
     if experience is not None:
         statistics.experience = experience
     if level is not None:

@@ -3,33 +3,25 @@ from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
 from uuid import UUID
 from database import get_db
-from models.views import Views
-from models.views_data import Views_data
-from models.views_pictures import Views_pictures
-from models.pictures import Pictures
-from models.courses import Courses
 import tempfile
-import os
+from models import Views, Views_data, Views_pictures, Pictures, Courses
 
 router = APIRouter()
 
 @router.get("/view_details/{exercise_id}", response_model=dict)
 def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
-    Pobiera szczegóły widoku na podstawie exercise_id, w tym template, ai_part, next_view_id, previous_view_id,
-    opisy, krótkie opisy oraz linki do obrazów wraz z ich picture_id.
+    Retrieves view details based on exercise_id, including template, ai_part, next_view_id, previous_view_id,
+    descriptions, short descriptions and links to images with their picture_id.
     """
-    # Pobranie widoku związanego z exercise_id
     view = db.query(Views).filter(Views.exercise_id == exercise_id).first()
     if not view:
         raise HTTPException(status_code=404, detail="View not found")
 
-    # Pobranie opisów i krótkich opisów z views_data
     descriptions_data = db.query(Views_data.description, Views_data.short_description).filter(Views_data.view_id == view.id).all()
     descriptions = [desc[0] for desc in descriptions_data]
     short_descriptions = [desc[1] for desc in descriptions_data if desc[1] is not None]
 
-    # Pobranie picture_id oraz linków do obrazów z views_pictures i pictures
     picture_data = db.query(Views_pictures.picture_id).filter(Views_pictures.view_id == view.id).all()
     picture_urls = [
         {
@@ -39,7 +31,6 @@ def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(
         for pic_id in picture_data
     ]
 
-    # Przygotowanie odpowiedzi
     response = {
         "template": view.template,
         "ai_part": view.ai_part,
@@ -47,7 +38,7 @@ def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(
         "previous_view_id": view.previous_view_id,
         "descriptions": descriptions,
         "short_descriptions": short_descriptions,
-        "picture_urls": picture_urls  # Lista słowników z picture_id i URL
+        "picture_urls": picture_urls  
     }
     
     return response
@@ -56,7 +47,7 @@ def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(
 @router.get("/view_picture/{picture_id}", response_class=FileResponse)
 def get_view_picture(picture_id: UUID, db: Session = Depends(get_db)):
     """
-    Zwraca obraz związany z picture_id w formacie JPG.
+    Returns the image associated with the picture_id in JPG format.
     """
     picture = db.query(Pictures).filter(Pictures.id == picture_id).first()
     if not picture or not picture.picture:
@@ -72,7 +63,7 @@ def get_view_picture(picture_id: UUID, db: Session = Depends(get_db)):
 @router.get("/course_view_details/{exercise_id}", response_model=dict)
 def get_course_view_details(exercise_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
-    Pobiera szczegóły kursu na podstawie exercise_id, w tym template, experience, points oraz link do obrazu.
+    Retrieves course details based on exercise_id, including template, experience, points and image link.
     """
     view = db.query(Views).filter(Views.exercise_id == exercise_id).first()
     if not view:

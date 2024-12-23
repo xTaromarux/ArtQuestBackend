@@ -1,48 +1,40 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
+import tempfile
 from uuid import UUID
 from typing import Optional
 from database import get_db
-from models.user_course import User_course
-from models.courses import Courses
-from models.pictures import Pictures
-from models.difficulties import Difficulties
-import tempfile
-from models.exercises import Exercises 
-from models.user_course import User_course 
-from models.views import Views 
-from models.views_data import Views_data 
-from models.views_pictures import Views_pictures 
-from models.progresses import Progresses
 from typing import List
+from models import User_course, Courses, Pictures, Difficulties, Exercises, User_course, Views, Views_data, Views_pictures, Progresses
+
 
 router = APIRouter()
 
 @router.get("/courses/{user_id}", response_model=List[dict])
 def get_courses_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
     """
-    Pobiera listę kursów przypisanych do danego użytkownika (user_id) wraz z user_course_id i wartością stage z tabeli progresses.
+    Retrieves a list of courses assigned to a given user (user_id) along with the user_course_id and stage value from the progresses table.
     """
-    # Pobranie powiązanych kursów użytkownika z tabeli user_course
+    # Retrieve related user courses from the user_course table
     user_courses = db.query(User_course).filter(User_course.user_id == user_id).all()
 
     if not user_courses:
         raise HTTPException(status_code=404, detail="No courses found for the user")
 
-    # Przygotowanie listy obiektów zawierających szczegóły kursu i wartość stage
+    # Prepare a list of objects containing course details and stage value
     courses = []
     for uc in user_courses:
-        # Pobranie kursu
+        # Course download
         course = db.query(Courses).filter(Courses.id == uc.course_id).first()
         if not course:
             continue
 
-        # Pobranie etapu (stage) z tabeli progresses
+        # Retrieve the stage from the progresses table
         progress = db.query(Progresses).filter(Progresses.user_course_id == uc.id).first()
         stage = progress.stage if progress else None
 
-        # Dodanie szczegółów kursu do odpowiedzi
+        # Adding course details to the answer
         courses.append({
             "course_id": course.id,
             "title": course.title,
@@ -54,7 +46,7 @@ def get_courses_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
             "difficulty_id": course.difficulty_id,
             "picture_id": course.picture_id,
             "user_course_id": uc.id,
-            "stage": stage  # Dodana wartość stage
+            "stage": stage
         })
 
     return courses
@@ -64,7 +56,7 @@ def get_courses_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
 @router.get("/course_details/{course_id}", response_model=dict)
 def get_course_details(course_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
-    Pobiera szczegóły kursu na podstawie course_id, w tym tytuł, opis, poziom trudności oraz link do obrazu.
+    Retrieves course details based on course_id, including title, description, difficulty level and image link.
     """
     course = db.query(Courses).filter(Courses.id == course_id).first()
     if not course:
@@ -74,7 +66,7 @@ def get_course_details(course_id: UUID, request: Request, db: Session = Depends(
     if not difficulty:
         raise HTTPException(status_code=404, detail="Difficulty not found")
 
-    picture_url = str(request.url_for("get_course_picture", course_id=course_id))  # Konwersja URL na string
+    picture_url = str(request.url_for("get_course_picture", course_id=course_id))
 
     response = {
         "course": {
@@ -98,7 +90,7 @@ def get_course_details(course_id: UUID, request: Request, db: Session = Depends(
 @router.get("/course_picture/{course_id}", response_class=FileResponse)
 def get_course_picture(course_id: UUID, db: Session = Depends(get_db)):
     """
-    Zwraca obraz kursu w formacie JPG na podstawie course_id.
+    Returns a JPG image of the course based on the course_id.
     """
     course = db.query(Courses).filter(Courses.id == course_id).first()
     if not course or not course.picture_id:
@@ -118,7 +110,7 @@ def get_course_picture(course_id: UUID, db: Session = Depends(get_db)):
 @router.get("/all_courses_details", response_model=List[dict])
 def get_all_courses_details(request: Request, db: Session = Depends(get_db)):
     """
-    Pobiera szczegóły wszystkich kursów, w tym id, title, description, poziom trudności oraz link do obrazu.
+    Retrieves details of all courses, including id, title, description, difficulty level and image link.
     """
     courses = db.query(Courses).all()
     response = []
@@ -163,14 +155,14 @@ def update_course(
     db: Session = Depends(get_db)
 ):
     """
-    Edytuje informacje o kursie w tabeli courses na podstawie course_id.
+    Edits course information in the courses table based on course_id.
     """
-    # Pobranie istniejącego kursu
+    # Downloading an existing course
     course = db.query(Courses).filter(Courses.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    # Aktualizacja pól tylko jeśli zostały przekazane
+    # Update fields only if passed
     if title is not None:
         course.title = title
     if short_description is not None:
@@ -186,7 +178,6 @@ def update_course(
     if picture_id is not None:
         course.picture_id = picture_id
 
-    # Zapisanie zmian w bazie danych
     db.commit()
     db.refresh(course)
 
@@ -207,32 +198,31 @@ def update_course(
 @router.delete("/courses/{course_id}/delete", response_model=dict)
 def delete_course(course_id: UUID, db: Session = Depends(get_db)):
     """
-    Usuwa kurs oraz wszystkie powiązane dane na podstawie course_id.
+    Deletes the course and all related data based on course_id.
     """
-    # Pobranie kursu
     course = db.query(Courses).filter(Courses.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    # Usunięcie powiązanych ćwiczeń
+    # Deletion of related exercises
     exercises = db.query(Exercises).filter(Exercises.course_id == course_id).all()
     for exercise in exercises:
-        # Usunięcie widoków powiązanych z ćwiczeniem
+        # Remove views associated with the exercise
         views = db.query(Views).filter(Views.exercise_id == exercise.id).all()
         for view in views:
-            # Usunięcie danych widoków
+            # Deletion of view data
             views_data = db.query(Views_data).filter(Views_data.view_id == view.id).all()
             for view_data in views_data:
                 db.delete(view_data)
 
-            # Usunięcie powiązanych zdjęć widoków
+            # Delete related view images
             views_pictures = db.query(Views_pictures).filter(Views_pictures.view_id == view.id).all()
             for view_picture in views_pictures:
                 db.delete(view_picture)
 
             db.delete(view)
 
-        # Usunięcie powiązanych zdjęć ćwiczeń
+        # Deletion of associated exercise photos
         if exercise.picture_id:
             picture = db.query(Pictures).filter(Pictures.id == exercise.picture_id).first()
             if picture:
@@ -240,26 +230,24 @@ def delete_course(course_id: UUID, db: Session = Depends(get_db)):
 
         db.delete(exercise)
 
-    # Usunięcie powiązanych zdjęć kursu
+    # Delete related course images
     if course.picture_id:
         course_picture = db.query(Pictures).filter(Pictures.id == course.picture_id).first()
         if course_picture:
             db.delete(course_picture)
 
-    # Usunięcie powiązań w tabeli user_course
+    # Deleting links in the user_course table
     user_courses = db.query(User_course).filter(User_course.course_id == course_id).all()
     for user_course in user_courses:
         db.delete(user_course)
 
-    # Usunięcie powiązanych widoków dla kursu
+    # Delete related views for the course
     course_views = db.query(Views).filter(Views.course_id == course_id).all()
     for view in course_views:
         db.delete(view)
 
-    # Usunięcie kursu
+    # Course deletion
     db.delete(course)
-
-    # Zatwierdzenie zmian
     db.commit()
 
     return {"message": "Course and all associated data deleted successfully"}
