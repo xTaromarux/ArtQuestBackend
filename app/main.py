@@ -9,31 +9,31 @@ import sys
 import signal
 from fastapi.middleware.cors import CORSMiddleware
 
-# Dodaj katalog główny projektu do ścieżki Pythona
+# Add project root directory to Python path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-# Dodaj katalog 'app' do ścieżki Pythona
+# Add directory 'app' to Python path
 sys.path.append(str(Path(__file__).resolve().parent))
 
-# Ładowanie zmiennych środowiskowych bez wyświetlania informacji
+# Loading environment variables without displaying information
 load_dotenv(dotenv_path="fastapidev.env")
 
-# Konfiguracja logowania
+# Login configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Tworzenie instancji FastAPI
+# Create a FastAPI instance
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Pozwala na wszystkie pochodzenia
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],  # Pozwala na wszystkie metody HTTP
-    allow_headers=["*"],  # Pozwala na wszystkie nagłówki
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headers
 )
 
-# Importowanie routerów z modułów
+# Importing routers from modules
 from app.services import (
     users as user_service,
     posts as post_service,
@@ -48,7 +48,7 @@ from app.services import (
     achievements as achievements_service
 )
 
-# Dodawanie tras do aplikacji FastAPI
+# Adding routes to the FastAPI application
 app.include_router(user_service.router, prefix="/api")
 app.include_router(post_service.router, prefix="/api")
 app.include_router(course_service.router, prefix="/api")
@@ -60,18 +60,14 @@ app.include_router(statistic_service.router, prefix="/api")
 app.include_router(exercise_feedback_service.router, prefix="/api")
 app.include_router(pictures_service.router, prefix="/api")
 app.include_router(achievements_service.router, prefix="/api")
-# Trasa testowa
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
 
-# Funkcja logowania
+# Logging function
 def log_info(stop_event):
     while not stop_event.is_set():
         logger.info("It works!")
         time.sleep(2)
 
-# Główna funkcja uruchamiająca FastAPI i logowanie
+# Main function running FastAPI and logging
 def main():
     stop_event = threading.Event()
 
@@ -80,14 +76,14 @@ def main():
         stop_event.set()
         sys.exit(0)
 
-    # Obsługa sygnału przerwania
+    # Interrupt signal handling
     signal.signal(signal.SIGINT, handle_sigint)
 
-    # Uruchomienie logowania w osobnym wątku
+    # Running logging in a separate thread
     log_thread = threading.Thread(target=log_info, args=(stop_event,))
     log_thread.start()
 
-    # Uruchomienie aplikacji FastAPI
+    # Launching the FastAPI application
     try:
         uvicorn.run("app.main:app", host="0.0.0.0", port=8000)
     finally:

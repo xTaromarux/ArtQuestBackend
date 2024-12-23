@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
-from models.achievements import Achievements
+from achievements import Achievements
 
 router = APIRouter()
 
