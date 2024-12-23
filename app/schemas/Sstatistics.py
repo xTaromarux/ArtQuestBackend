@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
-from typing import Optional
 
 class StatisticsBase(BaseModel):
     experience: int
@@ -11,14 +10,8 @@ class StatisticsBase(BaseModel):
     end_strike: datetime
     user_id: UUID
 
-    class Config:
-        from_attributes = True
-
 class StatisticsCreate(StatisticsBase):
     pass
 
 class Statistics(StatisticsBase):
     id: UUID
-
-    class Config:
-        from_attributes = True

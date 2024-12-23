@@ -107,7 +107,14 @@ async def update_user(
     db.commit()
     db.refresh(user)
 
-    return UsersMinimalResponse.from_orm(user)
+    # Ręczne tworzenie odpowiedzi
+    return UsersMinimalResponse(
+        id=user.id,
+        login=user.login,
+        mail=user.mail,
+        user_name=user.user_name
+    )
+
 
 @router.delete("/user/{user_id}", response_model=dict)
 

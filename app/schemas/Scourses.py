@@ -6,10 +6,7 @@ class CoursesBase(BaseModel):
     title: str
     description: str
     difficulty_id: UUID
-    picture_id: UUID
-
-    class Config:
-        from_attributes = True
+    picture_id: Optional[UUID]  
 
 class CoursesCreate(CoursesBase):
     pass
@@ -17,5 +14,3 @@ class CoursesCreate(CoursesBase):
 class Courses(CoursesBase):
     id: UUID
 
-    class Config:
-        from_attributes = True

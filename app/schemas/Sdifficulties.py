@@ -6,14 +6,8 @@ class DifficultiesBase(BaseModel):
     color: str
     experience: int
 
-    class Config:
-        from_attributes = True
-
 class DifficultiesCreate(DifficultiesBase):
     pass
 
 class Difficulties(DifficultiesBase):
     id: UUID
-
-    class Config:
-        from_attributes = True
