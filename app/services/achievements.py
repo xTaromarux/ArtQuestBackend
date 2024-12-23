@@ -9,12 +9,12 @@ router = APIRouter()
 @router.get("/achievements", response_model=List[dict])
 def get_all_achievements(db: Session = Depends(get_db)):
     """
-    Pobiera listę wszystkich osiągnięć z tabeli achievements.
+    Retrieves a list of all achievements from the achievements table.
     """
-    # Pobranie wszystkich rekordów z tabeli achievements
+    # Retrieve all records from the achievements table
     achievements = db.query(Achievements).all()
 
-    # Przygotowanie odpowiedzi jako lista słowników
+    # Preparing a response as a dictionary list
     response = [
         {
             "id": achievement.id,
