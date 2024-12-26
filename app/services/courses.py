@@ -251,3 +251,33 @@ def delete_course(course_id: UUID, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Course and all associated data deleted successfully"}
+
+@router.put("/user_course/{user_id}/edit_course", response_model=dict)
+def update_user_course(
+    user_id: UUID,
+    course_id: UUID = Form(...),  # Accept the new course_id from the form
+    db: Session = Depends(get_db)
+):
+    """
+    Updates the course_id for a specific user_id in the user_course table.
+    """
+    # Retrieve the user_course entry for the given user_id
+    user_course = db.query(User_course).filter(User_course.user_id == user_id).first()
+
+    # If no entry is found, raise a 404 error
+    if not user_course:
+        raise HTTPException(status_code=404, detail="User course entry not found")
+
+    # Update the course_id field
+    user_course.course_id = course_id
+
+    # Commit the changes to the database
+    db.commit()
+    db.refresh(user_course)
+
+    # Return the updated user_course entry
+    return {
+        "id": user_course.id,
+        "course_id": user_course.course_id,
+        "user_id": user_course.user_id,
+    }

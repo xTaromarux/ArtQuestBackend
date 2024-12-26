@@ -22,6 +22,7 @@ def convert_image_to_binary(upload_file: UploadFile) -> bytes:
 
 @router.post("/user/create", response_model=UsersMinimalResponse)
 async def create_user(
+    id: UUID,
     login: str,
     mail: str,
     user_name: str,
@@ -37,7 +38,7 @@ async def create_user(
 
     # Creation of a new user
     user = Users(
-        id=uuid4(),
+        id=id,
         login=login,
         mail=mail,
         user_name=user_name,

@@ -4,8 +4,12 @@ from datetime import datetime
 from typing import Optional
 
 class PostsBase(BaseModel):
+    id: UUID
     description: Optional[str] = None
     reactions: Optional[int] = None
+    date_updated: datetime
+
+    
 
 class PostsCreate(PostsBase):
     pass
