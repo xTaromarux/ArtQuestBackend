@@ -7,7 +7,7 @@ from database import get_db
 import tempfile
 from typing import List
 from models import Posts, Pictures, Users
-from schemas.Sposts import PostDetailsResponse
+from schemas.Sposts import PostDetailsResponse, PostsBase
 
 
 router = APIRouter()
@@ -216,3 +216,32 @@ def delete_post(post_id: UUID, db: Session = Depends(get_db)):
     
     return {"message": "Post and associated picture deleted successfully"}
 
+@router.put("/posts/{post_id}/edit_reactions", response_model=PostsBase)
+def update_post_reactions(
+    post_id: UUID,
+    reactions: int = Form(...),  
+    db: Session = Depends(get_db)
+):
+    """
+    Edits reactions in the posts table based on post_id.
+    """
+    # Downloading a post based on post_id
+    post = db.query(Posts).filter(Posts.id == post_id).first()
+
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    # Update the reactions field and update date
+    post.reactions = reactions
+    post.date_updated = datetime.utcnow() 
+
+    db.commit()
+    db.refresh(post)
+
+    # Returning an updated post
+    return {
+        "id": post.id,
+        "description": post.description,
+        "reactions": post.reactions,
+        "date_updated": post.date_updated
+    }
