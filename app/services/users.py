@@ -22,7 +22,6 @@ def convert_image_to_binary(upload_file: UploadFile) -> bytes:
 
 @router.post("/user/create", response_model=UsersMinimalResponse)
 async def create_user(
-    id: UUID,
     login: str,
     mail: str,
     user_name: str,
@@ -38,7 +37,7 @@ async def create_user(
 
     # Creation of a new user
     user = Users(
-        id=id,
+        id=uuid4(),
         login=login,
         mail=mail,
         user_name=user_name,
@@ -62,6 +61,17 @@ async def create_user(
         mail=user.mail,
         user_name=user.user_name
     )
+
+@router.get("/users/get-id-by-email", response_model=dict)
+def get_user_id_by_email(email: str, db: Session = Depends(get_db)):
+    """
+    Get user ID by email address.
+    """
+    user = db.query(Users).filter(Users.mail == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"id": str(user.id)}
 
 @router.put("/user/update/{user_id}", response_model=UsersMinimalResponse)
 async def update_user(
