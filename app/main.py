@@ -19,6 +19,7 @@ sys.path.append(str(Path(__file__).resolve().parent))
 
 # Load environment variables
 load_dotenv(dotenv_path="fastapidev.env")
+load_dotenv(dotenv_path=".env")
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
