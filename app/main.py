@@ -42,7 +42,8 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+REDIRECT_URI_GOOGLE = os.getenv("REDIRECT_URI_GOOGLE")
+REDIRECT_URI_GITHUB = os.getenv("REDIRECT_URI_GITHUB")
 
 @app.get("/login/{provider}")
 async def login(provider: str):
@@ -54,7 +55,7 @@ async def login(provider: str):
             "https://accounts.google.com/o/oauth2/v2/auth?"
             + urlencode({
                 "client_id": GOOGLE_CLIENT_ID,
-                "redirect_uri": REDIRECT_URI,
+                "redirect_uri": REDIRECT_URI_GOOGLE,
                 "response_type": "code",
                 "scope": "openid email profile",
             })
@@ -64,7 +65,7 @@ async def login(provider: str):
             "https://github.com/login/oauth/authorize?"
             + urlencode({
                 "client_id": GITHUB_CLIENT_ID,
-                "redirect_uri": REDIRECT_URI,
+                "redirect_uri": REDIRECT_URI_GITHUB,
                 "scope": "user:email",
             })
         )
@@ -86,7 +87,7 @@ async def oauth_callback(provider: str = None, code: str = None):
         token_data = {
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": REDIRECT_URI,
+            "redirect_uri": REDIRECT_URI_GOOGLE,
             "grant_type": "authorization_code",
             "code": code,
         }
@@ -95,7 +96,7 @@ async def oauth_callback(provider: str = None, code: str = None):
         token_data = {
             "client_id": GITHUB_CLIENT_ID,
             "client_secret": GITHUB_CLIENT_SECRET,
-            "redirect_uri": REDIRECT_URI,
+            "redirect_uri": REDIRECT_URI_GITHUB,
             "code": code,
         }
     else:
