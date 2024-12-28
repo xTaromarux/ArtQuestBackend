@@ -125,7 +125,7 @@ async def oauth_callback(provider: str = None, code: str = None):
     return JSONResponse(user_info)
 
 # Import routers from services
-from app.services import (
+from services import (
     users as user_service,
     posts as post_service,
     courses as course_service,
