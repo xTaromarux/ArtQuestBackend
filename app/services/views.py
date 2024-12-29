@@ -32,6 +32,7 @@ def get_view_details(exercise_id: UUID, request: Request, db: Session = Depends(
     ]
 
     response = {
+        "id":view.id,
         "template": view.template,
         "ai_part": view.ai_part,
         "next_view_id": view.next_view_id,
