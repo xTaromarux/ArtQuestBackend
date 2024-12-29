@@ -7,7 +7,8 @@ from typing import Optional
 from database import get_db
 from typing import List
 from models import User_course, Courses, Pictures, Difficulties, Exercises, User_course, Views, Views_data, Views_pictures, Progresses
-
+from uuid import uuid4
+from schemas.Suser_course import UserCourseCreate, UserCourse
 
 router = APIRouter()
 
@@ -281,3 +282,39 @@ def update_user_course(
         "course_id": user_course.course_id,
         "user_id": user_course.user_id,
     }
+
+
+@router.post("/user-course/create", response_model=UserCourse)
+def create_user_course(
+    user_id: str = Form(...),
+    course_id: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Creates a new entry in the user_course table with the provided user_id and course_id.
+    Accepts data in form format.
+    """
+    # Check if the combination of user_id and course_id already exists
+    existing_entry = db.query(User_course).filter(
+        User_course.user_id == user_id,
+        User_course.course_id == course_id
+    ).first()
+    
+    if existing_entry:
+        raise HTTPException(
+            status_code=400,
+            detail="User is already enrolled in the specified course."
+        )
+    
+    # Create a new record
+    new_user_course = User_course(
+        id=uuid4(),
+        user_id=user_id,
+        course_id=course_id
+    )
+
+    db.add(new_user_course)
+    db.commit()
+    db.refresh(new_user_course)
+
+    return new_user_course
