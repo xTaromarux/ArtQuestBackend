@@ -331,6 +331,7 @@ def get_course_id_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
 
     # Prepare the response
     response = {
+        "id":str(user_course_entry.id),
         "user_id": str(user_course_entry.user_id),
         "course_id": str(user_course_entry.course_id)
     }
