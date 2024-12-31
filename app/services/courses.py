@@ -318,3 +318,21 @@ def create_user_course(
     db.refresh(new_user_course)
 
     return new_user_course
+
+@router.get("/user_course/{user_id}/course_id", response_model=dict)
+def get_course_id_by_user_id(user_id: UUID, db: Session = Depends(get_db)):
+    """
+    Retrieves the course_id associated with the given user_id from the user_course table.
+    """
+    # Fetch the user_course entry using the provided user_id
+    user_course_entry = db.query(User_course).filter(User_course.user_id == user_id).first()
+    if not user_course_entry:
+        raise HTTPException(status_code=404, detail="No course found for the given user_id")
+
+    # Prepare the response
+    response = {
+        "user_id": str(user_course_entry.user_id),
+        "course_id": str(user_course_entry.course_id)
+    }
+
+    return response
