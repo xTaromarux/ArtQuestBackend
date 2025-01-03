@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 from models import Progresses, User_course
 from database import get_db
-from schemas.Sprogresses import Progresses
+from schemas.Sprogresses import ProgressesBase
 
 
 router = APIRouter()
@@ -37,7 +37,7 @@ def create_progress(
         "stage": new_progress.stage,
         "user_course_id": str(new_progress.user_course_id),
     }
-@router.put("/progresses/{user_course_id}/edit_stage", response_model=Progresses)
+@router.put("/progresses/{user_course_id}/edit_stage", response_model=ProgressesBase)
 def update_stage_by_user_course_id(user_course_id: UUID, stage: int, db: Session = Depends(get_db)):
     """
     Edits the `stage` value in the `progresses` table based on the `user_course_id`.
