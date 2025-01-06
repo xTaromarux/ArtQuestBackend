@@ -9,18 +9,13 @@ class UsersBase(BaseModel):
     group: Optional[str] = None
 
 class UsersMinimalResponse(BaseModel):
+    id: UUID
     login: str
     mail: str
     user_name: str
-
-    class Config:
-        from_attributes = True
 
 class UsersCreate(UsersBase):
     pass
 
 class Users(UsersBase):
     id: UUID
-
-    class Config:
-        from_attributes = True

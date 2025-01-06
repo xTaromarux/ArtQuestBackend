@@ -4,7 +4,8 @@ from uuid import UUID, uuid4
 from datetime import datetime
 from typing import Optional
 from models.statistics import Statistics as StatisticsModel
-from schemas.Sstatistics import StatisticsCreate, Statistics
+from models.users import Users
+from schemas.Sstatistics import Statistics
 from database import get_db
 
 router = APIRouter()
@@ -20,14 +21,18 @@ def create_statistics(
     db: Session = Depends(get_db)
 ):
     """
-    Tworzy nowy wpis w tabeli statistics na podstawie podanych danych.
+    Creates a new entry in the statistics table based on the data provided.
     """
-    # Sprawdzenie, czy statystyki dla user_id już istnieją
+    # Checking whether the user exists
+    user = db.query(Users).filter(Users.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found")
+
+    # Checking whether statistics for user_id already exist
     existing_statistics = db.query(StatisticsModel).filter(StatisticsModel.user_id == user_id).first()
     if existing_statistics:
         raise HTTPException(status_code=400, detail="Statistics for this user already exist")
 
-    # Tworzenie nowego wpisu
     new_statistics = StatisticsModel(
         id=uuid4(),
         experience=experience,
@@ -42,7 +47,15 @@ def create_statistics(
     db.commit()
     db.refresh(new_statistics)
 
-    return new_statistics
+    return {
+        "id": new_statistics.id,
+        "experience": new_statistics.experience,
+        "level": new_statistics.level,
+        "courses": new_statistics.courses,
+        "start_strike": new_statistics.start_strike,
+        "end_strike": new_statistics.end_strike,
+        "user_id": new_statistics.user_id,
+    }
 
 
 @router.put("/statistics/{user_id}/edit", response_model=Statistics)
@@ -56,14 +69,14 @@ def update_statistics(
     db: Session = Depends(get_db)
 ):
     """
-    Edytuje istniejący wpis w tabeli statistics na podstawie user_id.
+    Edits an existing entry in the statistics table based on user_id.
     """
-    # Pobranie istniejącego wpisu
+
     statistics = db.query(StatisticsModel).filter(StatisticsModel.user_id == user_id).first()
     if not statistics:
         raise HTTPException(status_code=404, detail="Statistics for this user not found")
-
-    # Aktualizacja pól tylko jeśli zostały przekazane
+    
+    # Update fields only if passed
     if experience is not None:
         statistics.experience = experience
     if level is not None:

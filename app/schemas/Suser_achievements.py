@@ -10,6 +10,3 @@ class UserAchievementsCreate(UserAchievementsBase):
 
 class UserAchievementsResponse(UserAchievementsBase):
     id: UUID
-
-    class Config:
-        orm_mode = True

@@ -1,31 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-import pytz
-
 from database import get_db
-from models.users import Users
-from models.pictures import Pictures
-from models.posts import Posts
-from models.user_achievements import User_achievements
-from models.user_course import User_course
-from models.statistics import Statistics
-from models.user_achievements import User_achievements
-from models.achievements import Achievements
-from models.exercise_feedback import Exercise_feedback
-from models.comments import Comments
+import tempfile
+from models import Users, Pictures, Posts, User_achievements, User_course, Statistics, User_achievements, Achievements, Exercise_feedback, Comments
 from schemas.Susers import Users as UsersMinimalResponse
-
 
 router = APIRouter()
 
-def convert_image_to_binary(image_file: UploadFile) -> bytes:
+def convert_image_to_binary(upload_file: UploadFile) -> bytes:
     """
-    Konwertuje plik obrazu na dane binarne.
+    Converts the uploaded image file into binary data.
     """
-    return image_file.file.read()
+    try:
+        return upload_file.file.read()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
 
 @router.post("/user/create", response_model=UsersMinimalResponse)
 async def create_user(
@@ -37,133 +30,135 @@ async def create_user(
     db: Session = Depends(get_db)
 ):
     """
-    Tworzy nowego użytkownika, ustawiając `created_date` w stałej strefie czasowej UTC+1.
+    Creates a new user by setting `created_date` in the fixed time zone UTC+1.
     """
-    # Ustawienie czasu na UTC+1 bez zmiany na czas letni
     utc_plus_one = timezone(timedelta(hours=1))
     current_time = datetime.now(utc_plus_one)
 
-    # Utworzenie nowego użytkownika
+    # Creation of a new user
     user = Users(
         id=uuid4(),
         login=login,
         mail=mail,
         user_name=user_name,
         group=group,
-        created_date=current_time  # Ustawienie daty utworzenia w UTC+1
+        created_date=current_time
     )
 
-    # Jeśli przekazano obraz, zapisz go w tabeli pictures
     if picture:
         user_picture = Pictures(id=uuid4(), picture=convert_image_to_binary(picture))
         db.add(user_picture)
-        db.flush()  # Zapisuje obraz i generuje jego ID
-        user.picture_id = user_picture.id  # Przypisanie ID obrazu do użytkownika
+        db.flush()
+        user.picture_id = user_picture.id
 
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    return UsersMinimalResponse(login=user.login, mail=user.mail, user_name=user.user_name)
+    return UsersMinimalResponse(
+        id=user.id,
+        login=user.login,
+        mail=user.mail,
+        user_name=user.user_name
+    )
 
-@router.put("/user/{user_id}/edit", response_model=UsersMinimalResponse)
+@router.get("/users/get-id-by-email", response_model=dict)
+def get_user_id_by_email(email: str, db: Session = Depends(get_db)):
+    """
+    Get user ID by email address.
+    """
+    user = db.query(Users).filter(Users.mail == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"id": str(user.id)}
+
+@router.put("/user/update/{user_id}", response_model=UsersMinimalResponse)
 async def update_user(
     user_id: UUID,
     login: Optional[str] = None,
     mail: Optional[str] = None,
     user_name: Optional[str] = None,
     group: Optional[str] = None,
-    picture: Optional[UploadFile] = File(None),
+    picture: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    """
-    Edytuje login, mail, user_name oraz grupę użytkownika, a także zapisuje nowy obraz w formacie blob w tabeli pictures.
-    """
-    # Pobranie użytkownika z bazy danych
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Aktualizacja danych użytkownika tylko dla pól, które zostały przekazane
-    if login is not None:
+    if login:
         user.login = login
-    if mail is not None:
+    if mail:
         user.mail = mail
-    if user_name is not None:
+    if user_name:
         user.user_name = user_name
-    if group is not None:
+    if group:
         user.group = group
-
-    # Jeśli przekazano obraz, zaktualizuj zdjęcie profilowe
     if picture:
-        if user.picture_id:
-            user_picture = db.query(Pictures).filter(Pictures.id == user.picture_id).first()
-        else:
-            user_picture = Pictures(id=uuid4())
-            db.add(user_picture)
-            db.flush()  # Upewnij się, że nowy obraz ma ID
-            user.picture_id = user_picture.id
-
-        user_picture.picture = convert_image_to_binary(picture)
+        user_picture = Pictures(id=uuid4(), picture=picture.file.read())
+        db.add(user_picture)
+        db.flush()
+        user.picture_id = user_picture.id
 
     db.commit()
     db.refresh(user)
 
-    return UsersMinimalResponse(login=user.login, mail=user.mail, user_name=user.user_name)
+    return UsersMinimalResponse(
+        id=user.id,
+        login=user.login,
+        mail=user.mail,
+        user_name=user.user_name
+    )
+
 
 @router.delete("/user/{user_id}", response_model=dict)
+
 def delete_user(user_id: UUID, db: Session = Depends(get_db)):
     """
-    Usuwa wszystkie informacje dotyczące użytkownika na podstawie user_id, w tym powiązane zdjęcie,
-    posty, kursy, osiągnięcia, statystyki, komentarze i exercise_feedback.
+    Deletes all user information based on user_id, including related photo,
+    posts, courses, achievements, statistics, comments and exercise_feedback.
     """
-    # Pobranie użytkownika z bazy danych
+    # Downloading a user from the database
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Sprawdzenie, czy użytkownik ma powiązane zdjęcie i jego usunięcie
+    # Checking whether the user has an associated photo and deleting it
     if user.picture_id:
         picture = db.query(Pictures).filter(Pictures.id == user.picture_id).first()
         if picture:
             db.delete(picture)
     
-    # Usunięcie wszystkich postów użytkownika
     user_posts = db.query(Posts).filter(Posts.user_id == user_id).all()
     for post in user_posts:
         db.delete(post)
     
-    # Usunięcie wszystkich powiązanych wierszy w tabeli user_course
     user_courses = db.query(User_course).filter(User_course.user_id == user_id).all()
     for user_course in user_courses:
         db.delete(user_course)
 
-    # Usunięcie wszystkich powiązanych wierszy w tabeli user_achievements
     user_achievements = db.query(User_achievements).filter(User_achievements.user_id == user_id).all()
     for achievement in user_achievements:
         db.delete(achievement)
 
-    # Usunięcie statystyk użytkownika
     user_statistics = db.query(Statistics).filter(Statistics.user_id == user_id).first()
     if user_statistics:
         db.delete(user_statistics)
 
-    # Usunięcie wszystkich powiązanych wierszy w tabeli exercise_feedback
     user_feedbacks = db.query(Exercise_feedback).filter(Exercise_feedback.user_id == user_id).all()
     for feedback in user_feedbacks:
-        # Usunięcie powiązanego zdjęcia, jeśli istnieje
+
         if feedback.picture_id:
             feedback_picture = db.query(Pictures).filter(Pictures.id == feedback.picture_id).first()
             if feedback_picture:
                 db.delete(feedback_picture)
         db.delete(feedback)
 
-    # Usunięcie wszystkich komentarzy użytkownika
     user_comments = db.query(Comments).filter(Comments.user_id == user_id).all()
     for comment in user_comments:
         db.delete(comment)
 
-    # Usunięcie użytkownika
     db.delete(user)
     db.commit()
     
@@ -172,19 +167,17 @@ def delete_user(user_id: UUID, db: Session = Depends(get_db)):
 @router.get("/user/{user_id}/details", response_model=dict)
 def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_db)):
     """
-    Pobiera szczegóły użytkownika, w tym statystyki, osiągnięcia i obrazy.
+    Retrieves user details, including statistics, achievements and a link to the image associated with the user.
     """
-    # Pobranie użytkownika
     user = db.query(Users).filter(Users.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Pobranie statystyk użytkownika
     statistics = db.query(Statistics).filter(Statistics.user_id == user_id).first()
     if not statistics:
         raise HTTPException(status_code=404, detail="Statistics not found")
-
-    # Pobranie osiągnięć użytkownika z tabeli user_achievements i achievements
+    
+    # Retrieve user achievements from the user_achievements and achievements table
     user_achievements = (
         db.query(Achievements.experience, Achievements.picture_id)
         .join(User_achievements, User_achievements.achievement_id == Achievements.id)
@@ -192,11 +185,10 @@ def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_
         .all()
     )
 
-    # Przygotowanie listy osiągnięć z linkami do obrazów
     achievements = []
     for achievement in user_achievements:
         picture_url = (
-            str(request.url_for("get_view_picture", picture_id=achievement.picture_id))
+            str(request.url_for("get_picture_by_id", picture_id=achievement.picture_id))
             if achievement.picture_id else None
         )
         achievements.append({
@@ -204,13 +196,17 @@ def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_
             "picture_url": picture_url
         })
 
-    # Przygotowanie odpowiedzi
+    picture_url = None
+    if user.picture_id:
+        picture_url = str(request.url_for("get_picture_by_id", picture_id=user.picture_id))
+
     response = {
         "user": {
             "login": user.login,
             "mail": user.mail,
             "user_name": user.user_name,
-            "created_date": user.created_date
+            "created_date": user.created_date,
+            "picture_url": picture_url
         },
         "statistics": {
             "experience": statistics.experience,
@@ -223,3 +219,19 @@ def get_user_details(user_id: UUID, request: Request, db: Session = Depends(get_
     }
     
     return response
+
+
+@router.get("/picture/{picture_id}", response_class=FileResponse, name="get_picture_by_id")
+def get_picture_by_id(picture_id: UUID, db: Session = Depends(get_db)):
+    """
+    Retrieves an image from the pictures table as a JPG file based on picture_id.
+    """
+    picture = db.query(Pictures).filter(Pictures.id == picture_id).first()
+    if not picture or not picture.picture:
+        raise HTTPException(status_code=404, detail="Picture not found")
+
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+        temp_file.write(picture.picture)
+        temp_file_path = temp_file.name
+
+    return FileResponse(temp_file_path, media_type="image/jpeg")

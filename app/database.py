@@ -4,22 +4,22 @@ import sqlalchemy.orm as _orm
 import os
 from dotenv import load_dotenv
 
-# Załaduj zmienne środowiskowe z pliku fastapidev.env
+# Load environment variables from fastapidev.env file
 load_dotenv(dotenv_path="fastapidev.env")
 
-# Utwórz URL bazy danych
+# Create a database URL
 DATABASE_URL = f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@{os.getenv("POSTGRES_HOST")}:{os.getenv("POSTGRES_PORT")}/{os.getenv("POSTGRES_DB")}'
 
-# Tworzenie silnika bazy danych
+# Creating a database engine
 engine = _sql.create_engine(DATABASE_URL)
 
-# Konfiguracja sesji bazy danych
+# Database session configuration
 session_local = _orm.sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Deklaracja podstawowej klasy modelu
+# Declaration of basic model class
 Base = _declarative.declarative_base()
 
-# Funkcja zależności do uzyskiwania sesji bazy danych
+# Dependency function to get database sessions
 def get_db():
     db = session_local()
     try:

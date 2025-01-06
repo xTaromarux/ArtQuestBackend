@@ -6,16 +6,10 @@ class ExerciseFeedbackBase(BaseModel):
     message: str
     user_id: UUID
     exercise_id: UUID
-    picture_id: Optional[UUID]
-
-    class Config:
-        from_attributes = True
-
+    picture_id: Optional[UUID]  
+    
 class ExerciseFeedbackCreate(ExerciseFeedbackBase):
     pass
 
 class ExerciseFeedback(ExerciseFeedbackBase):
     id: UUID
-
-    class Config:
-        from_attributes = True

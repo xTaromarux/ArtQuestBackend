@@ -4,11 +4,12 @@ from datetime import datetime
 from typing import Optional
 
 class PostsBase(BaseModel):
-    description: Optional[str] = None  
+    id: UUID
+    description: Optional[str] = None
     reactions: Optional[int] = None
+    date_updated: datetime
 
-    class Config:
-        from_attributes = True
+    
 
 class PostsCreate(PostsBase):
     pass
@@ -16,15 +17,16 @@ class PostsCreate(PostsBase):
 class PostsUpdate(BaseModel):
     description: Optional[str] = None
 
-
 class PostDetailsResponse(BaseModel):
-    description: Optional[str]
+    id: UUID
+    description: str
     date_added: datetime
     date_updated: datetime
-    reactions: Optional[int]
-    picture_url: Optional[str]  # Link do endpointu zwracającego obraz
+    reactions: int
+    picture_url: Optional[str] = None
     user_name: str
     login: str
+    user_picture_url: Optional[str] = None
 
 class Posts(PostsBase):
     id: UUID
@@ -32,6 +34,3 @@ class Posts(PostsBase):
     date_updated: datetime
     user_id: Optional[UUID] = None
     picture_id: Optional[UUID] = None
-
-    class Config:
-        from_attributes = True
