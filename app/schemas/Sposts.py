@@ -25,6 +25,7 @@ class PostDetailsResponse(BaseModel):
     reactions: int
     picture_url: Optional[str] = None
     user_name: str
+    user_id: UUID
     login: str
     user_picture_url: Optional[str] = None
 

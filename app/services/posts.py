@@ -121,6 +121,7 @@ def get_posts(request: Request, db: Session = Depends(get_db)):
             "picture_url": picture_url, 
             "user_picture_url": user_picture_url, 
             "user_name": user.user_name,
+            "user_id":user.id,
             "login": user.login
 
         })
