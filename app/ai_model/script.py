@@ -83,7 +83,7 @@ def process_images(image1_bytes, image2_bytes):
         print(f"Percentage of common points: {percentage_common_points:.2f}%")
 
         # Wygenerowanie wiadomości
-        message = generate_message(percentage_common_points, chatgpt_enabled=False)
+        message = generate_message(percentage_common_points, chatgpt_enabled=True)
         return message
 
     except Exception as e:
@@ -115,7 +115,7 @@ def generate_message(percentage_common_points, chatgpt_enabled):
     # Using ChatGPT (optional)
     try:
         load_api_key()
-        prompt = f"The result shows a matching percentage of {percentage_common_points}%. Please provide a motivational message. (below 5%. Please provide a motivational message, such as better luck next time between 5% and 10%. Please provide a message saying you're doing well, between 10% and 15%. Please provide an encouraging message like 'super wow'., 15% or more. Please provide a message saying 'perfect'."
+        prompt = f"The result shows a matching percentage of {percentage_common_points}. Please provide a motivational message. (below 30%. Please provide a motivational message, such as better luck next time between 30% and 60%. Please provide a message saying you're doing well, between 60% and 90%. Please provide an encouraging message like 'super wow'., 90% or more. Please provide a message saying 'perfect'. Return also number of percentage points with % mark"
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
