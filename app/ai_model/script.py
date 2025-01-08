@@ -83,7 +83,7 @@ def process_images(image1_bytes, image2_bytes):
         print(f"Percentage of common points: {percentage_common_points:.2f}%")
 
         # Wygenerowanie wiadomości
-        message = generate_message(percentage_common_points, chatgpt_enabled=True)
+        message = generate_message(percentage_common_points, chatgpt_enabled=False)
         return message
 
     except Exception as e:
@@ -101,13 +101,13 @@ def generate_message(percentage_common_points, chatgpt_enabled):
         message: message.
     """
     if percentage_common_points < 5:
-        local_message = "Next time will be better"
+        local_message = "Next time will be better. You have " + str(percentage_common_points) + "% points"
     elif 5 <= percentage_common_points < 10:
-        local_message = "You're doing good"
+        local_message = "You're doing good. You have " + str(percentage_common_points) + "% points"
     elif 10 <= percentage_common_points < 15:
-        local_message = "Super wow"
+        local_message = "Super wow. You have " + str(percentage_common_points) + "% points"
     else:
-        local_message = "Ideal"
+        local_message = "Ideal. You have " + str(percentage_common_points) + "% points"
 
     if not chatgpt_enabled:
         return local_message
