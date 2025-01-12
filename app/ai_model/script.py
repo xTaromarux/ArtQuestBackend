@@ -82,7 +82,7 @@ def process_images(image1_bytes, image2_bytes):
         print(f"Number of common points: {num_common_points}")
         print(f"Percentage of common points: {percentage_common_points:.2f}%")
 
-        # Wygenerowanie wiadomości
+    
         message = generate_message(percentage_common_points, chatgpt_enabled=False)
         return message
 
